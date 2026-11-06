@@ -1,0 +1,8 @@
+.product-stage{position:relative;background:radial-gradient(ellipse at 50% 60%,#214e57,#071820 70%);border:1px solid #375c65;border-radius:16px;overflow:hidden;margin:32px 0}
+.product-stage canvas{display:block;width:100%;height:430px;touch-action:pan-y;cursor:grab}
+.product-stage canvas:active{cursor:grabbing}
+.stage-caption{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 24px;color:#c1d8d8;font-size:13px}
+.product-stage button{background:#16353e;border:1px solid #688e95;color:#eef8f7;padding:9px 16px;border-radius:24px}
+.product-stage label{display:flex;gap:16px;align-items:center;padding:0 24px 20px;font-size:12px}
+.view-angle{width:min(300px,60%);accent-color:#9edfd5}
+@media(max-width:600px){.product-stage canvas{height:300px}.stage-caption{padding:16px;font-size:11px}}
