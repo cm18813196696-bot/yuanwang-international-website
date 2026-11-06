@@ -1,0 +1,91 @@
+/* Shared colour and surface treatment for all Yuanwang pages. */
+:root {
+  --spa-paper: #f7faf7;
+  --spa-white: #fffefb;
+  --spa-mist: #eaf5f6;
+  --spa-water: #d9ecec;
+  --spa-ink: #173745;
+  --spa-muted: #436270;
+  --spa-line: #c8dde1;
+  --spa-accent: #176775;
+  --spa-accent-hover: #124e5e;
+  --spa-shadow: 0 12px 34px #25495a0e;
+}
+body, body.daylight {
+  color: var(--spa-ink);
+  background: radial-gradient(ellipse at 94% 0%, #e4f2f3 0, transparent 38rem), var(--spa-paper);
+}
+body .nav, body.daylight .nav { background:#fbfdfbf7; border-color:var(--spa-line); }
+body .prebar, body.daylight .prebar { color:var(--spa-muted); background:var(--spa-mist); }
+body .brand-name, body.daylight .brand-name, body .nav-links a, body.daylight .nav-links a { color:var(--spa-ink); }
+body .brand-name small, body.daylight .brand-name small { color:var(--spa-muted); }
+body .nav-links a:hover, body .nav-links a[aria-current],
+body.daylight .nav-links a:hover, body.daylight .nav-links a[aria-current] { color:var(--spa-accent); }
+body .lang button, body.daylight .lang button { color:var(--spa-accent-hover); border-color:var(--spa-line); }
+body .lang button.active, body.daylight .lang button.active { color:white; background:var(--spa-accent); border-color:var(--spa-accent); }
+body .foot, body.daylight .foot, body .mini-footer, body.daylight-products .mini-footer {
+  color:var(--spa-muted); background:var(--spa-mist); border-color:var(--spa-line);
+}
+body .mini-footer a, body.daylight-products .mini-footer a { color:var(--spa-accent-hover); }
+body .btn, body.daylight .btn, body .btnx { color:white; background:var(--spa-accent); border:1px solid var(--spa-accent); border-radius:7px; }
+body .btn:hover, body.daylight .btn:hover, body .btnx:hover { color:white; background:var(--spa-accent-hover); }
+body .btn.outline, body.daylight .btn.outline { color:var(--spa-accent-hover); background:transparent; border-color:#91b5bd; }
+body .btn.outline:hover { background:var(--spa-mist); }
+body :is(a,button,input,select,textarea,summary):focus-visible { outline:2px solid var(--spa-accent); outline-offset:4px; }
+
+body :is(.subhero,.intro-hero,.herox), body.daylight-products .subhero, body .hero:not(#home) {
+  min-height:0;
+  background:
+    repeating-radial-gradient(ellipse at 97% 125%, transparent 0 20px, #4e959e18 21px 22px, transparent 23px 36px),
+    linear-gradient(120deg,#fcfcf5 4%,#e8f5f3 59%,#d7edf1);
+  color:var(--spa-ink);
+  border-bottom:1px solid var(--spa-line);
+}
+body .hero:not(#home)::before { content:none; }
+body .overline, body.daylight .overline, body .tile .ey, body .collection-kicker,
+body.daylight-products .collection-kicker, body .step::before { color:var(--spa-accent); }
+body :is(.intro,.section-head,.intro-hero,.subhero,.herox,.hero,.spec,.tile,.card,.cardx,.pcontent,.engineering-plates) p,
+body :is(.section-head p,p.intro,.source,.note,.smallnote,.checklist,.pcontent small,.card small,.stat span,.contact-list small),
+body .light :is(.intro,.section-head p,.card p,.note) { color:var(--spa-muted); }
+body .banner, body .light, body .contact-section, body .note {
+  background:var(--spa-mist); color:var(--spa-ink); border-color:var(--spa-line);
+}
+body .banner a, body .pcontent a, body .cardx a, body .collection-text-link,
+body .collection-breadcrumb a, body.daylight-products .collection-text-link { color:var(--spa-accent-hover); }
+body :is(.card,.cardx,.tile,.project-card,.profile-card,.drawing-grid figure,.collection-card,.catalog-plate,.catalog-viewer),
+body .light .card, body.daylight-products :is(.collection-card,.tile) {
+  background:var(--spa-white); color:var(--spa-ink); border:1px solid var(--spa-line);
+  border-radius:12px; box-shadow:var(--spa-shadow);
+}
+body :is(.drawing-grid,.engineering-plates .drawing-grid) img, body .catalog-plate img {
+  background:var(--spa-mist);
+}
+body :is(.no-photo,.pill) { color:var(--spa-accent-hover); background:var(--spa-mist); }
+body .no-photo span { color:var(--spa-muted); }
+body :is(.spec,.step,.engineering-plates,.spec-lines > div,.contact-list a,.contact-list div) { border-color:var(--spa-line); }
+body .split img { box-shadow:16px 16px 0 var(--spa-water); }
+body :is(.filterbar,.catalog-filters,.stage-options,.stage-zoom,.viewer-actions) button,
+body .stage-finish select, body .contact-form :is(input,textarea,select) {
+  color:var(--spa-accent-hover); background:var(--spa-white); border-color:#91b5bd;
+}
+body .filterbar button.active, body :is(.catalog-filters,.stage-options,.viewer-actions) button[aria-pressed="true"] {
+  color:white; background:var(--spa-accent); border-color:var(--spa-accent);
+}
+body .collection-main {
+  --muted:var(--spa-muted); --line:var(--spa-line); --mint:var(--spa-accent);
+}
+body .collection-main .product-stage { background:var(--spa-white); box-shadow:var(--spa-shadow); }
+body :is(.collection-breadcrumb,.stage-copy,.stage-hint,.stage-panel legend,.stage-finish > span,
+.catalog-plate small,.catalog-plate figcaption,.engineering-plates summary span,.collection-card-copy p:not(.collection-kicker)) {
+  color:var(--spa-muted);
+}
+body .stage-panel, body .viewer-toolbar { border-color:var(--spa-line); }
+body .catalog-expand { color:var(--spa-accent-hover); background:var(--spa-white); border-color:var(--spa-line); }
+body .catalog-viewer::backdrop, body .modal { background:#142e3bba; }
+body .photo-feature {
+  background:linear-gradient(90deg,#edf7f5f5,#edf7f5cf 57%,#edf7f528),url('assets/projects/qingliang-13.jpg') center/cover;
+}
+body .photo-feature p { color:var(--spa-ink); }
+body .gallery-item { background:var(--spa-mist); border-color:var(--spa-line); }
+body .project-source { max-width:72ch; margin-block:24px; }
+body .project-source a { color:var(--spa-accent-hover); text-decoration:underline; text-underline-offset:3px; }
