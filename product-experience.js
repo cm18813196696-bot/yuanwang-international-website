@@ -1,55 +1,297 @@
-document.querySelectorAll('.product-stage').forEach(stage=>{
-  const canvas=stage.querySelector('canvas'),ctx=canvas.getContext('2d');
-  const slider=stage.querySelector('input'),button=stage.querySelector('button');
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  let angle=.44,paused=reduced.matches,drag=false,lastX=0,visible=true,time=0,previous=0;
-  function label(){button.textContent=paused?'Play / 播放':'Pause / 暂停';button.setAttribute('aria-pressed',String(paused));}
-  label();button.onclick=()=>{paused=!paused;label();};
-  slider.oninput=()=>{angle=Number(slider.value)*Math.PI/180;paused=true;label();};
-  canvas.onpointerdown=e=>{drag=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId);};
-  canvas.onpointermove=e=>{if(drag){angle+=(e.clientX-lastX)*.008;lastX=e.clientX;slider.value=Math.round(angle*180/Math.PI);}};
-  canvas.onpointerup=canvas.onpointercancel=()=>drag=false;
-  canvas.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();angle+=(e.key==='ArrowLeft'?-.1:.1);}};
-  new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;}).observe(stage);
-  function draw(now){
-    const delta=Math.min((now-previous)/1000,.05);previous=now;
-    if(visible&&!document.hidden){
-      if(!paused&&!drag){time+=delta;angle+=delta*.12;}
-      const w=canvas.clientWidth,h=canvas.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
-      if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}
-      ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
-      const scale=Math.min(w/5.6,h/3.6),cos=Math.cos(angle),sin=Math.sin(angle);
-      const project=(x,y,z)=>{const a=x*cos-z*sin,b=x*sin+z*cos;return [w/2+a*scale,h*.55+(b*.48-y*.88)*scale,b*.88+y*.48];};
-      function polygon(points,fill,stroke){
-        ctx.beginPath();points.forEach((p,i)=>{const q=project(...p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=.6;ctx.stroke();}
-      }
-      const faces=[],round=stage.dataset.model!=='steel',n=round?96:4;
-      const ring=(i,r,y)=>{const a=i/n*Math.PI*2+Math.PI/4;return [Math.cos(a)*r*(round?1.35:1.65),y,Math.sin(a)*r];};
-      for(let i=0;i<n;i++){
-        const points=[ring(i,1,0),ring(i+1,1,0),ring(i+1,1,.55),ring(i,1,.55)];
-        const light=Math.round(105+85*(.5+.5*Math.cos(i/n*Math.PI*2+angle)));
-        faces.push({points,depth:points.reduce((s,p)=>s+project(...p)[2],0)/4,fill:`rgb(${light},${light+8},${light+12})`});
-      }
-      const shadow=ctx.createRadialGradient(w/2,h*.72,10,w/2,h*.72,w*.32);shadow.addColorStop(0,'#0009');shadow.addColorStop(1,'#0000');ctx.fillStyle=shadow;ctx.fillRect(0,0,w,h);
-      faces.sort((a,b)=>b.depth-a.depth).forEach(f=>polygon(f.points,f.fill,'#c6e0e133'));
-      polygon(Array.from({length:n},(_,i)=>ring(i,1,.55)),'#b8cbcc','#ebffff');
-      polygon(Array.from({length:n},(_,i)=>ring(i,.88,.56)),stage.dataset.model==='signature'?'#23477a':'#087b8a','#90e3ed');
-      for(let j=0;j<8;j++){
-        const r=.12+j*.095+Math.sin(time*1.2+j)*.012;
-        ctx.beginPath();for(let i=0;i<=96;i++){const a=i/96*Math.PI*2;const q=project(Math.cos(a)*r*1.3,.565,Math.sin(a)*r*.78);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);}
-        ctx.strokeStyle='rgba(172,243,245,.16)';ctx.stroke();
-      }
-      if(stage.dataset.model!=='steel'){
-        for(let i=0;i<48;i++){
-          const a=i/48*Math.PI*2,x=Math.cos(a)*1.65,z=Math.sin(a)*1.65;
-          const height=stage.dataset.model==='show'?.5+.5*Math.sin(time*1.5+i*.4):.9;
-          const q=project(x,.1,z),top=project(x,height,z);
-          ctx.strokeStyle=stage.dataset.model==='show'?'#79dedba0':'#aa99ff60';ctx.lineWidth=stage.dataset.model==='show'?2:1;ctx.beginPath();ctx.moveTo(...q.slice(0,2));ctx.lineTo(...top.slice(0,2));ctx.stroke();
-          ctx.fillStyle='#d0c6ff';ctx.beginPath();ctx.arc(top[0],top[1],1.6,0,Math.PI*2);ctx.fill();
-        }
-      }
-    }
-    requestAnimationFrame(draw);
+const locale = () => document.body.dataset.lang === 'zh' ? 'zh' : 'en';
+const translation = (en, zh) => locale() === 'zh' ? zh : en;
+
+function setText(element, en, zh) {
+  element.dataset.en = en;
+  element.dataset.zh = zh;
+  element.textContent = translation(en, zh);
+}
+
+function pressed(buttons, selected) {
+  for (const button of buttons) button.setAttribute('aria-pressed', String(button === selected));
+}
+
+const stage = document.querySelector('.product-stage');
+if (stage) {
+  const mount = stage.querySelector('.stage-mount');
+  const poster = mount.firstElementChild;
+  const status = stage.querySelector('.stage-status span');
+  const copy = stage.querySelector('.stage-copy');
+  const modelCopy = [copy.dataset.en, copy.dataset.zh];
+  const controls = [...stage.querySelectorAll('[data-model-controls]')];
+  const motion = stage.querySelector('[data-motion]');
+  const water = stage.querySelector('[data-water]');
+  const finish = stage.querySelector('[data-finish]');
+  const views = [...stage.querySelectorAll('[data-view]')];
+  const variants = [...stage.querySelectorAll('[data-variant]')];
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const filmPath = stage.dataset.film;
+  const filmTools = stage.querySelector('.stage-film-tools');
+  const liveTools = stage.querySelector('.stage-live-tools');
+  const filmToggle = stage.querySelector('[data-film-toggle]');
+  const liveMode = stage.querySelector('[data-live-mode]');
+  let model;
+  let film;
+  let modelUnavailable = false;
+  let started = false;
+  let playing = !reduceMotion.matches;
+  let filmRequested = !reduceMotion.matches;
+  let stageVisible = true;
+  let dry = false;
+
+  function setPlaying(value) {
+    playing = value;
+    model?.play(playing);
+    setText(motion, playing ? 'Pause motion' : 'Play motion', playing ? '暂停动画' : '播放动画');
   }
-  requestAnimationFrame(draw);
+
+  function refreshFilmButton() {
+    const paused = film.paused;
+    setText(filmToggle, paused ? 'Play 3D film' : 'Pause 3D film', paused ? '播放三维短片' : '暂停三维短片');
+  }
+
+  function playFilmIfVisible() {
+    if (!film?.isConnected) return;
+    if (filmRequested && stageVisible && !document.hidden) {
+      film.play().catch(() => {
+        if (film.isConnected) refreshFilmButton();
+      });
+    } else film.pause();
+  }
+
+  function showFilm() {
+    model?.destroy();
+    model = undefined;
+    for (const control of controls) control.hidden = true;
+    if (liveTools) liveTools.hidden = true;
+    if (!filmPath) {
+      mount.replaceChildren(poster);
+      setText(stage.querySelector('#model-title'), 'Water choreography', '水舞编排');
+      setText(stage.querySelector('.stage-badge b'), 'Catalogue reference', '手册参考图');
+      setText(status, 'Catalogue reference', '手册参考图');
+      return;
+    }
+    if (!film) {
+      film = document.createElement('video');
+      film.src = filmPath;
+      film.poster = poster.src;
+      film.muted = true;
+      film.defaultMuted = true;
+      film.loop = true;
+      film.playsInline = true;
+      film.preload = 'metadata';
+      film.setAttribute('aria-label', '3D product animation / 产品三维动画');
+      film.addEventListener('play', refreshFilmButton);
+      film.addEventListener('pause', refreshFilmButton);
+      film.addEventListener('error', () => {
+        if (!film.isConnected) return;
+        mount.replaceChildren(poster);
+        filmToggle.hidden = true;
+        setText(status, 'Reference illustration', '参考效果图');
+      });
+    }
+    mount.replaceChildren(film);
+    const filmCopy = stage.dataset.model === 'steel'
+      ? ['Watch the camera travel across the rolled rim, water surface and brushed steel.',
+         '跟随镜头近看圆润池沿、流动水面和拉丝钢面。']
+      : ['Watch the warm arch and underwater light play across the blue pool as the camera moves.',
+         '跟随镜头观察暖色光环和水下灯光在蓝色池面上的变化。'];
+    setText(copy, ...filmCopy);
+    filmTools.hidden = false;
+    liveMode.hidden = modelUnavailable;
+    setText(status, 'Rendered 3D film · Concept study', '三维渲染短片 · 概念展示');
+    refreshFilmButton();
+    playFilmIfVisible();
+  }
+
+  function fallback() {
+    modelUnavailable = true;
+    showFilm();
+  }
+
+  async function startModel() {
+    if (liveMode) liveMode.disabled = true;
+    try {
+      const {mountModel} = await import('./spa-model.js');
+      film?.pause();
+      model = mountModel(mount, stage.dataset.model, stage.dataset.defaultVariant, {
+        reducedMotion: reduceMotion.matches,
+        onLost: fallback,
+      });
+      if (filmTools) filmTools.hidden = true;
+      if (liveTools) liveTools.hidden = false;
+      setText(copy, ...modelCopy);
+      for (const control of controls) control.hidden = false;
+      pressed(variants, variants[0]);
+      pressed(views, views[0]);
+      setText(status, 'Live 3D · Drag to rotate', '实时三维 · 拖动旋转');
+      setPlaying(!reduceMotion.matches);
+      if (finish) model.finish(finish.value);
+      model.water(!dry);
+    } catch (error) {
+      console.warn('Interactive product viewer is unavailable.', error);
+      fallback();
+    } finally {
+      if (liveMode) liveMode.disabled = false;
+    }
+  }
+
+  function canRenderModel() {
+    try {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('webgl2');
+      context?.getExtension('WEBGL_lose_context')?.loseContext();
+      return Boolean(context);
+    } catch {
+      return false;
+    }
+  }
+
+  const nearViewport = new IntersectionObserver(([entry]) => {
+    stageVisible = entry.isIntersecting;
+    if (!started && stageVisible) {
+      started = true;
+      modelUnavailable = !canRenderModel();
+      if (filmPath || modelUnavailable) showFilm();
+      else startModel();
+    }
+    playFilmIfVisible();
+  }, {rootMargin: '100px'});
+  nearViewport.observe(stage);
+  document.addEventListener('visibilitychange', playFilmIfVisible);
+  liveMode?.addEventListener('click', startModel);
+  stage.querySelector('[data-film-mode]')?.addEventListener('click', showFilm);
+  filmToggle?.addEventListener('click', () => {
+    filmRequested = film.paused;
+    playFilmIfVisible();
+  });
+  motion.addEventListener('click', () => setPlaying(!playing));
+  reduceMotion.addEventListener('change', event => {
+    filmRequested = !event.matches;
+    playFilmIfVisible();
+    setPlaying(!event.matches);
+  });
+  for (const button of views) button.addEventListener('click', () => {
+    model?.view(button.dataset.view);
+    pressed(views, button);
+  });
+  for (const button of variants) button.addEventListener('click', () => {
+    model?.variant(button.dataset.variant);
+    if (finish) model?.finish(finish.value);
+    model?.water(!dry);
+    model?.view('full');
+    pressed(views, views[0]);
+    pressed(variants, button);
+  });
+  for (const button of stage.querySelectorAll('[data-zoom]')) {
+    button.addEventListener('click', () => model?.zoom(button.dataset.zoom === 'in' ? -.4 : .4));
+  }
+  finish?.addEventListener('change', () => model?.finish(finish.value));
+  water?.addEventListener('click', () => {
+    dry = !dry;
+    water.setAttribute('aria-pressed', String(dry));
+    setText(water, dry ? 'Refill pool' : 'Reveal dry shell', dry ? '恢复水面' : '查看空池结构');
+    model?.water(!dry);
+  });
+}
+
+const catalogue = document.querySelector('.catalog-gallery');
+const viewer = document.querySelector('.catalog-viewer');
+if (catalogue && viewer) {
+  const filters = [...catalogue.querySelectorAll('[data-filter-category]')];
+  const groups = [...catalogue.querySelectorAll('[data-category]')];
+  const previous = viewer.querySelector('[data-viewer-previous]');
+  const next = viewer.querySelector('[data-viewer-next]');
+  const zoom = viewer.querySelector('[data-viewer-zoom]');
+  const close = viewer.querySelector('form button');
+  const image = viewer.querySelector('img');
+  const scrollArea = viewer.querySelector('.viewer-image');
+  const caption = viewer.querySelector('#viewer-caption');
+  let links = [];
+  let index = 0;
+  let opener;
+
+  function select(filter) {
+    pressed(filters, filter);
+    const group = groups.find(item => item.dataset.category === filter.dataset.filterCategory);
+    for (const item of groups) item.hidden = item !== group;
+    links = [...group.querySelectorAll('[data-gallery-image]')];
+  }
+
+  function render() {
+    const link = links[index];
+    const thumbnail = link.querySelector('img');
+    const label = translation(thumbnail.dataset.labelEn, thumbnail.dataset.labelZh);
+    image.src = link.href;
+    image.alt = label;
+    caption.textContent = label;
+    previous.disabled = index === 0;
+    next.disabled = index === links.length - 1;
+    zoom.setAttribute('aria-pressed', 'false');
+    scrollArea.classList.remove('is-zoomed');
+    scrollArea.scrollTo(0, 0);
+  }
+
+  function step(delta) {
+    const candidate = index + delta;
+    if (candidate < 0 || candidate >= links.length) return;
+    index = candidate;
+    render();
+  }
+
+  catalogue.querySelector('.catalog-filters').hidden = false;
+  const fromHash = location.hash.startsWith('#gallery-') && location.hash.slice('#gallery-'.length);
+  select(filters.find(item => item.dataset.filterCategory === fromHash) ?? filters[0]);
+  for (const button of filters) {
+    button.setAttribute('aria-controls', 'gallery-' + button.dataset.filterCategory);
+    button.addEventListener('click', () => select(button));
+  }
+  catalogue.addEventListener('click', event => {
+    const link = event.target.closest('[data-gallery-image]');
+    if (!link || event.metaKey || event.ctrlKey || event.shiftKey || !viewer.showModal) return;
+    index = links.indexOf(link);
+    if (index < 0) return;
+    event.preventDefault();
+    opener = link;
+    viewer.showModal();
+    render();
+    close.focus();
+  });
+  previous.addEventListener('click', () => step(-1));
+  next.addEventListener('click', () => step(1));
+  zoom.addEventListener('click', () => {
+    const zoomed = scrollArea.classList.toggle('is-zoomed');
+    zoom.setAttribute('aria-pressed', String(zoomed));
+    if (!zoomed) scrollArea.scrollTo(0, 0);
+  });
+  viewer.addEventListener('keydown', event => {
+    if (scrollArea.classList.contains('is-zoomed')) return;
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      step(event.key === 'ArrowLeft' ? -1 : 1);
+    }
+  });
+  viewer.addEventListener('click', event => {
+    if (event.target === viewer) {
+      const bounds = viewer.getBoundingClientRect();
+      if (event.clientX < bounds.left || event.clientX > bounds.right ||
+          event.clientY < bounds.top || event.clientY > bounds.bottom) viewer.close();
+    }
+  });
+  viewer.addEventListener('close', () => {
+    image.removeAttribute('src');
+    opener?.focus();
+  });
+}
+
+function localizeAccessibility() {
+  for (const element of document.querySelectorAll('[data-label-en][data-label-zh]')) {
+    const label = translation(element.dataset.labelEn, element.dataset.labelZh);
+    if (element.tagName === 'IMG') element.alt = label;
+    else element.setAttribute('aria-label', label);
+  }
+}
+localizeAccessibility();
+new MutationObserver(localizeAccessibility).observe(document.body, {
+  attributes: true, attributeFilter: ['data-lang'],
 });

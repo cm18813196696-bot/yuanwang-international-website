@@ -41,3 +41,17 @@ a.profile-card:hover,a.profile-card:focus-visible{border-color:#a7e2d7}
 .drawing-grid img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:#0a222c}
 .drawing-grid figcaption{padding:12px 16px}
 .portfolio-entry{padding-block:24px}
+
+#engineering-drawings{scroll-margin-top:120px}
+.engineering-plates{border-block-end:1px solid #466e76;padding-block:12px;color:#dcebea}
+.engineering-plates summary{cursor:pointer;font-size:1.05rem;padding:8px 0}
+.engineering-plates summary span{font-size:.8rem;color:#a4c6c7;margin-inline-start:10px}
+.engineering-plates summary:focus-visible{outline:2px solid #c7f8e9}
+.engineering-plates p{color:#bdd3d6}
+.engineering-plates .drawing-grid img{aspect-ratio:16/9;background:#102e3a}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .showcase-card::before{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(113deg,transparent 37%,#d4f5e331 50%,transparent 61%);transform:translateX(-105%);transition:transform .8s cubic-bezier(.24,.62,.25,1)}
+  .showcase-card:hover::before{transform:translateX(105%)}
+  .showcase-card:hover .showcase-media img:first-child{transform:scale(1.085) translateX(-1.3%)}
+  .showcase-card:hover .showcase-media img:not(:first-child){transform:scale(1.04) translateX(1.2%)}
+}
