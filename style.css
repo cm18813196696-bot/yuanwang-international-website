@@ -64,3 +64,56 @@ a.profile-card:hover,a.profile-card:focus-visible{border-color:#a7e2d7}
 @media (max-width: 1050px) {
   .nav-in .nav-links { overflow: visible; padding-block: 0; }
 }
+
+/* Daylight palette for the homepage and featured collection landing page. */
+.daylight { background:#f4faff; color:#15344b; }
+.daylight .prebar { background:#dceef8; color:#234b66; }
+.daylight .nav { background:#f7fcfff5; border-color:#d5e7f0; }
+.daylight .brand-name,.daylight .nav-links a { color:#183e59; }
+.daylight .brand-name small { color:#466d85; }
+.daylight .nav-links a:hover,.daylight .nav-links a[aria-current] { color:#11659c; }
+.daylight .lang button { border-color:#94b8ce; color:#224d68; }
+.daylight .lang button.active,.daylight .btn { background:#176894; color:white; border-color:#176894; }
+.daylight .btn:hover { background:#11577d; color:white; }
+.daylight .btn.outline { background:transparent; color:#175d87; }
+.daylight .overline { color:#245e80; }
+.daylight .foot { background:#e7f3fa; color:#234b66; border-color:#ccdfeb; }
+
+.daylight.compact-home .hero {
+  width:min(1450px,100%); margin:auto; padding:clamp(24px,5vw,64px) 5%;
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.14fr);
+  gap:clamp(22px,5vw,70px); align-items:center;
+}
+.daylight .hero::before { content:none; }
+.daylight.compact-home .hero-content { padding:0; grid-column:1; grid-row:1; }
+.daylight .hero h1 { line-height:1.06; }
+.daylight .hero h1 em { color:#246e99; }
+.daylight .hero p { color:#385a70; }
+.daylight .home-hero-image { margin:0; grid-column:2; grid-row:1; overflow:hidden; border-radius:18px; background:white; box-shadow:0 15px 40px #285f801c; }
+.daylight .home-hero-image img { display:block; width:100%; aspect-ratio:1.45; object-fit:cover; }
+.daylight .home-hero-image figcaption { padding:9px 16px; font-size:12px; color:#385a70; }
+.daylight .showcase-grid { gap:16px; }
+.daylight .showcase-card { min-height:0; height:auto; aspect-ratio:auto; border:1px solid #d3e5f0; background:white; color:#183e59; }
+.daylight .showcase-card::after { content:none; }
+.daylight .showcase-media { position:relative; aspect-ratio:2.2; }
+.daylight .showcase-label { position:relative; inset:auto; padding:12px 16px 16px; }
+.daylight .showcase-label h3 { font-size:clamp(18px,2vw,26px); }
+.daylight .home-card-index { color:#326785; font-size:11px; letter-spacing:.12em; }
+.daylight .showcase-more { color:#175d87; opacity:1; }
+.daylight .showcase-card:hover { border-color:#82b7d4; box-shadow:0 10px 24px #285f801c; }
+.daylight a:focus-visible,.daylight button:focus-visible { outline:2px solid #146b9f; outline-offset:3px; }
+.daylight-products .subhero { padding:clamp(30px,5vw,65px) 5%; background:linear-gradient(125deg,#edf8ff,#d8edf9); }
+.daylight-products .subhero p,.daylight-products .intro,.daylight-products .smallnote,
+.daylight-products .spec p,.daylight-products .tile p,.daylight-products .checklist { color:#375b71; }
+.daylight-products .collection-card,.daylight-products .tile { background:#fff; border-color:#cedfeb; color:#183e59; }
+.daylight-products .collection-card-copy p:not(.collection-kicker) { color:#375b71; }
+.daylight-products .collection-kicker,.daylight-products .collection-text-link,.daylight-products .tile .ey { color:#25658b; }
+.daylight-products .collection-card { box-shadow:0 6px 18px #285f8010; }
+.daylight-products .mini-footer { color:#385a70; background:#e7f3fa; border-color:#ccdfeb; }
+.daylight-products .mini-footer a { color:#175d87; }
+@media (max-width:760px) {
+  .daylight.compact-home .hero { grid-template-columns:1fr; }
+  .daylight .home-hero-image { grid-column:1; grid-row:2; }
+  .daylight .home-hero-image img { aspect-ratio:1.8; }
+  .daylight .showcase-card { height:auto; }
+}
