@@ -35,6 +35,21 @@ Base: b65ce89119094c226151973f0c246eb15ee3a90c. Existing Render site: yuanwang-i
 
 Primary references reviewed: EUR-Lex Regulation (EU) 2023/1230; GOV.UK GB machinery guidance and 2026 CE/UKCA guidance; GOV.UK CE/UKNI guidance; UNCITRAL's Article 39 text and digest. Exact shipment requirements still depend on the product, destination and placing-on-market date.
 
-## Next checkpoint
+## Checkpoint 3 — completed release
 
-Browser-check the desktop, phone and tablet layouts, form validation and copy/download actions, the four records and printing. Then save any fixes, advance the original main branch and verify the existing Render deployment. Preserve an archive branch at the completed source state.
+- Desktop browser review passed; responsive QA in 390 px and 820 px frames passed. At phone size the document width remains 375 CSS px and the 580 px tables scroll inside their own 336 px container.
+- Mobile navigation opens and closes correctly. Service details expand correctly, and form validation prevents an empty report.
+- A clearly labelled synthetic report was prepared in the browser. Its serial number and time zone were retained. Copy and text-download actions passed; the page did not send a message or generate a false ticket number.
+- Rechecked the Qingliangwan project cover and its 29 remaining gallery entries. No removed screenshot references or completed image-load failures remain.
+- Added direct PDF downloads for the English policy and all four records, generated from the same HTML. All 19 pages were rendered and visually reviewed; text bounds pass. Fixed split writing boxes in the annual report and improved table column proportions.
+- PDF inventory: policy 12 pages; service request 1; overseas project record 2; annual report 3; commissioning checklist 1. PDF generation: `python tools/export-after-sales-pdfs.py` (ReportLab, lxml, DejaVu fonts).
+- Browser download of the policy PDF passed. Browser-native print output could not be inspected in this cloud browser; the verified direct PDFs are the dependable download option. The page retains standard print buttons and styles.
+- Code, generated HTML, the five PDFs, both reproducible generators and this log are preserved in `archive/after-sales-2026-11-08`.
+
+## Publication and future continuation
+
+This is the completed source release for the original `main` branch and its existing auto-deploying Render static site `srv-dbm4pmjbc2fs738all4g` in workspace `tea-db4uodflk1mc7383upeg`.
+
+Production origin: https://yuanwang-international-preview.onrender.com/
+
+Verify publication by matching the Render deployment's commit to this release before reporting completion. The original source attachment remains `远望海外客户售后服务守则-2026-11-08.docx` (YW-AFS-2026-01 V1.0, 8 November 2026). Future edits should update the HTML generator first, regenerate pages and PDFs, validate references, then publish and advance the archive checkpoint. Existing product studios, the other project photographs and the remaining engineering/geothermal resources were retained.
