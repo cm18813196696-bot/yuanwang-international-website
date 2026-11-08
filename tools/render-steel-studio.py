@@ -9,7 +9,9 @@ import sys
 from pathlib import Path
 from mathutils import Matrix, Vector
 
-source_path, output_path = sys.argv[sys.argv.index('--') + 1:]
+arguments = sys.argv[sys.argv.index('--') + 1:]
+source_path, output_path = arguments[:2]
+view_names = arguments[2:] or ['full', 'rim', 'seat', 'jet', 'drain']
 data = json.loads(Path(source_path).read_text())
 destination = Path(output_path)
 destination.mkdir(parents=True, exist_ok=True)
@@ -132,7 +134,7 @@ camera = bpy.context.object
 scene.camera = camera
 camera.data.lens = 42
 
-for name in ['full', 'rim', 'seat', 'jet', 'drain']:
+for name in view_names:
     v = data['views'][name]
     azimuth, lift, distance = v['azimuth'], v['lift'], v['distance']
     target = Vector((v.get('targetX', 0), -v.get('targetZ', 0), v['centre']))

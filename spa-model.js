@@ -216,7 +216,7 @@ function assembleBath(kind, shape, time) {
     [1.34,.819],[1.329,.838],[1.309,.847],[1.281,.85],
     [1.259,.844],[1.247,.829],[1.243,.80],[1.24,.728],[1.23,.59],
     [1.215,.468],[1.206,.433],[1.19,.418],[1.14,.416],[1.03,.417],
-    [.995,.412],[.98,.393],[.968,.34],[.959,.23],[.944,.185],[.91,.159],[.05,.159]
+    [.995,.412],[.98,.393],[.968,.34],[.959,.23],[.944,.185],[.91,.159],[0,.159]
   ];
   const bath = new THREE.Mesh(shellGeometry(shell, shape), steel);
   scene.add(bath);
@@ -238,8 +238,13 @@ function assembleBath(kind, shape, time) {
   scene.add(lightSpill);
   for (let i = 0; i < 10; i++) {
     const a = TAU * (i + .32) / 10;
-    const [x,z] = contour(a, 1.214, shape);
-    fitting(scene, new THREE.Vector3(-x,.15,-z), [x,.525,z], chrome, recess, .027);
+    const [x,z] = contour(a, 1.223, shape);
+    const before = contour(a - .001, 1.223, shape);
+    const after = contour(a + .001, 1.223, shape);
+    const dx = after[0] - before[0], dz = after[1] - before[1];
+    const normal = new THREE.Vector3(-dz, Math.hypot(dx,dz) * .11, dx).normalize();
+    const centre = new THREE.Vector3(x,.525,z).addScaledVector(normal,.009);
+    fitting(scene, normal, centre.toArray(), chrome, recess, .027);
   }
   const [overflowX,overflowZ] = contour(-Math.PI / 2,1.222,shape);
   fitting(scene, new THREE.Vector3(0,.09,1), [overflowX,.705,overflowZ], chrome, recess, .049);

@@ -39,3 +39,5 @@ Packaging suppresses Monte Carlo grain while preserving model edges and converts
 ## Next checkpoint
 
 Inspect the five rendered views, verify the fallback detail buttons and film return in the browser, and check shared product pages before publishing. Save the final source and deployment result here.
+
+Visual QA found an open centre at the dry-shell floor and jet bezels intersecting non-circular walls. The floor is now closed to the centreline, and jet fittings use the local contour normal with an inward mounting offset. The affected renders are being regenerated before publication.
