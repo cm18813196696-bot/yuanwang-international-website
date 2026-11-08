@@ -27,6 +27,7 @@ if (stage) {
   const details = [...stage.querySelectorAll('[data-inspect]')];
   const detailNote = stage.querySelector('.stage-detail-note');
   const renderedPath = stage.dataset.rendered;
+  const overview = stage.querySelector('[data-studio-overview]');
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const filmPath = stage.dataset.film;
   const filmTools = stage.querySelector('.stage-film-tools');
@@ -44,6 +45,7 @@ if (stage) {
   let selectedVariant = stage.dataset.defaultVariant;
   let selectedView = 'full';
   let selectedDetail = null;
+  let modelStarting = false;
 
   function setDry(value) {
     dry = value;
@@ -55,6 +57,7 @@ if (stage) {
   function showDetail(button) {
     selectedDetail = button.dataset.inspect;
     selectedView = selectedDetail;
+    overview?.setAttribute('aria-pressed', 'false');
     pressed(details, button);
     pressed(views, null);
     if (detailNote) detailNote.textContent = button.dataset.detail;
@@ -72,6 +75,7 @@ if (stage) {
   function clearDetail() {
     selectedDetail = null;
     pressed(details, null);
+    overview?.setAttribute('aria-pressed', 'true');
     if (detailNote) detailNote.textContent = detailNote.dataset.default;
     setText(status, 'Live 3D · Drag to rotate', '实时三维 · 拖动旋转');
   }
@@ -119,6 +123,7 @@ if (stage) {
     for (const control of controls) control.hidden = true;
     if (liveTools) liveTools.hidden = true;
     pressed(details, null);
+    overview?.setAttribute('aria-pressed', 'false');
     if (!filmPath) {
       mount.replaceChildren(poster);
       setText(stage.querySelector('#model-title'), 'Water choreography', '水舞编排');
@@ -166,6 +171,8 @@ if (stage) {
   }
 
   async function startModel() {
+    if (modelStarting) return;
+    modelStarting = true;
     if (liveMode) liveMode.disabled = true;
     try {
       const {mountModel} = await import('./spa-model.js?v=steel-detail-2');
@@ -190,6 +197,7 @@ if (stage) {
       console.warn('Interactive product viewer is unavailable.', error);
       fallback();
     } finally {
+      modelStarting = false;
       if (liveMode) liveMode.disabled = false;
     }
   }
@@ -237,6 +245,17 @@ if (stage) {
     pressed(views, button);
   });
   for (const button of details) button.addEventListener('click', () => showDetail(button));
+  overview?.addEventListener('click', () => {
+    selectedView = 'full';
+    clearDetail();
+    if (model) {
+      model.view('full');
+      setDry(false);
+      setPlaying(!reduceMotion.matches);
+      pressed(views, views[0]);
+    } else if (modelUnavailable) showRendered('full');
+    else startModel();
+  });
   for (const button of variants) button.addEventListener('click', () => {
     selectedVariant = button.dataset.variant;
     selectedView = 'full';

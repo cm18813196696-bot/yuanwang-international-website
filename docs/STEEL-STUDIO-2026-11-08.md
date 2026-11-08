@@ -21,7 +21,13 @@ node tools/export-steel-studio.mjs /absolute/path/geometry.json
 blender -b -t 6 -P tools/render-steel-studio.py -- /absolute/path/geometry.json /absolute/path/render-output
 ```
 
-The exporter uses the production model's actual geometry and camera definitions. Convert the five PNG renders to WebP in assets/collections/steel-studio before deployment.
+The exporter uses the production model's actual geometry and camera definitions. CPU renders use studio softboxes and reflection cards. Package the five PNG renders with Pillow and NumPy:
+
+```sh
+python tools/package-steel-renders.py /absolute/path/render-output assets/collections/steel-studio
+```
+
+Packaging suppresses Monte Carlo grain while preserving model edges and converts the views to WebP.
 
 ## Checks so far
 

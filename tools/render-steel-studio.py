@@ -28,6 +28,8 @@ def material(spec, water=False):
         shader.inputs['Emission Color'].default_value = (*spec['colour'], 1)
         shader.inputs['Emission Strength'].default_value = 2.5
     if spec['brushed']:
+        # Match the live shader's grey roughness-map multiplier.
+        shader.inputs['Roughness'].default_value = spec['roughness'] * .60
         nodes = mat.node_tree.nodes
         wave = nodes.new('ShaderNodeTexWave')
         wave.bands_direction = 'Z'
@@ -99,6 +101,16 @@ area('Large softbox', (-3, -2, 5), 1100, 4, (1, .94, .83), 3)
 area('Cool edge reflection', (3, 1, 3), 1000, 3, (.76, .9, 1), 4)
 area('Long rim reflection', (0, 4, 3), 700, 4, (1, 1, 1), .35)
 area('Front fill', (1, -4, 2), 400, 3, (.88, 1, .98), 2)
+negative_fill = bpy.data.materials.new('Studio reflection card')
+negative_fill.diffuse_color = (.018, .025, .028, 1)
+for position, scale in [((0, -4.5, 1.15), (4, 1.1, 1)), ((-4, 0, 1.7), (2.4, 1.6, 1))]:
+    bpy.ops.mesh.primitive_plane_add(size=2, location=position)
+    card = bpy.context.object
+    card.scale = scale
+    card.rotation_euler = (Vector((0, 0, .5)) - card.location).to_track_quat('Z', 'Y').to_euler()
+    card.data.materials.append(negative_fill)
+    card.visible_camera = False
+    card.visible_shadow = False
 world = bpy.context.scene.world
 world.use_nodes = True
 world.node_tree.nodes['Background'].inputs[0].default_value = (.75, .85, .81, 1)
@@ -114,6 +126,7 @@ scene.render.resolution_y = 900
 scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = 'PNG'
 scene.view_settings.view_transform = 'AgX'
+scene.view_settings.exposure = -.20
 bpy.ops.object.camera_add()
 camera = bpy.context.object
 scene.camera = camera

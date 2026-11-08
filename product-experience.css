@@ -152,6 +152,7 @@ body [data-model="steel"] .stage-status { color: #244f55; }
 body [data-model="steel"] .stage-render { object-fit: contain; background: #cbdcd4; }
 body .stage-panel .stage-inspection { margin: 5px 0 16px; padding-block: 12px; border-block: 1px solid #d7e4df; }
 body .stage-detail-note { min-height: 4.4em; margin: 9px 0 0; color: #526e73; font-size: .74rem; line-height: 1.6; }
+body .stage-spec-note { color: #526e73; font-size: .68rem; line-height: 1.6; margin: 0 0 14px; }
 .stage-mount canvas { touch-action: none; }
 @media(max-width:540px) {
   body [data-model="steel"][data-prefer-live] .stage-visual { min-height: 330px; aspect-ratio: auto; }
