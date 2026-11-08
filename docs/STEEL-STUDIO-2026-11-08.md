@@ -1,6 +1,6 @@
 # Stainless steel pool studio — 8 November 2026
 
-Status: release candidate complete. Five rendered views and browser fallback checks pass; production deployment is the next action. Earlier checkpoint commits preserve work in progress.
+Status: published to the original website and verified. Earlier checkpoint commits preserve implementation and visual-review stages.
 
 Base: 21e37330757af940d006e7d74b630a428e4a4dfc on the original main branch.
 
@@ -43,6 +43,20 @@ Packaging suppresses Monte Carlo grain while preserving model edges and converts
 
 ## Next checkpoint
 
-Publish this release candidate to the existing main branch, verify the live deployment and page, and append the deployed commit and result to the archive branch. Then continue with one bounded improvement to the signature-product studio. Direct Douyin/Xiaohongshu profile links and custom domains remain separate outstanding tasks.
+Continue with one bounded improvement to the signature-product studio. Direct Douyin/Xiaohongshu profile links and custom domains remain separate outstanding tasks.
 
 Visual QA found an open centre at the dry-shell floor and jet bezels intersecting non-circular walls. The floor is now closed to the centreline, and jet fittings use the local contour normal with an inward mounting offset. The affected renders were regenerated and visually reviewed before publication.
+
+## Publication receipt
+
+- Published source commit: b65ce89119094c226151973f0c246eb15ee3a90c
+- Source tree: c8c3084cfcf900ed6ba9383e8059a2398d360ceb
+- Render deployment: dep-dbo44jo473hc73a6lda0
+- Deployment reached live: 8 November 2026, 09:35:50 UTC / London time.
+- Public page: https://yuanwang-international-preview.onrender.com/products-steel.html#model
+- The existing five-minute HTML cache expired; at 09:41:48 UTC the public HTML exactly matched the saved source and contained all four inspection buttons.
+- The versioned JavaScript, model module, stylesheet and all five WebP views exactly matched the saved source (eight asset checks, plus HTML).
+- The public browser displayed the new studio; the Jets button selected its detail view and the image loaded at its full 1200-pixel width. A public-page proof image was captured for the user.
+- Real-time GPU rendering remains unverified in the current browser, which lacks WebGL2. The rendered fallback, preview detail switching, film return and catalogue interactions were verified.
+
+This archive update records deployment evidence only; the deployed main commit remains b65ce89119094c226151973f0c246eb15ee3a90c.
