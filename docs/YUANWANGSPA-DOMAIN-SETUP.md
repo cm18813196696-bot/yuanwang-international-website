@@ -1,6 +1,6 @@
 # Yuanwang official domain setup
 
-Prepared 8 November 2026. Status: configuration plan saved; custom-domain attachment and DNS verification are not yet complete.
+Updated 8 November 2026. Status: Render domain attachment and apex-to-www redirect are configured; DNS verification has not passed and HTTPS issuance is pending.
 
 ## Confirmed destination
 
@@ -13,8 +13,8 @@ Prepared 8 November 2026. Status: configuration plan saved; custom-domain attach
 
 ## Steps to complete
 
-1. Sign in to the existing Render account and open this service's Settings / Custom Domains. Confirm the correct service and domain allowance before saving.
-2. Add `www.yuanwangspa.com` as the primary custom domain. Render's documented behaviour is to add the apex `yuanwangspa.com` automatically and redirect it to `www`.
+1. COMPLETED: signed in to the original Render account and verified this exact service. The workspace showed Hobby plan with 0 of 2 included domains used before the change.
+2. COMPLETED: added `www.yuanwangspa.com` as the primary custom domain. Render automatically added `yuanwangspa.com` with a redirect to `www.yuanwangspa.com`. The existing Render subdomain remains enabled.
 3. In the actual authoritative DNS provider, configure the following. Preserve unrelated records, including email MX and TXT records.
 
 | Host | Type | Target | Applicability |
@@ -30,10 +30,12 @@ Prepared 8 November 2026. Status: configuration plan saved; custom-domain attach
 
 ## Current blockers / evidence
 
-- The connected Render interface confirms the existing service but exposes no custom-domain mutation. The browser dashboard requires interactive sign-in; authentication is in progress with the owner. No passwords or verification codes are stored in this checkpoint.
+- The connected Render interface confirms the existing service but exposes no custom-domain mutation, so the browser dashboard was used after the owner completed sign-in. No passwords or verification codes are stored in this checkpoint.
+- Both custom domains now appear under Settings / Custom Domains. A verification attempt returned `Verification Error` for both; certificate status remains `Waiting for Verification`. Domain attachment alone is not a completed launch.
 - The registrar / authoritative DNS provider has not been identified in the available context or domain-specific Gmail search. Ask for the provider name or DNS-management page, then use its available integration or browser controls.
 - The execution environment's resolver failed for both the requested hostnames and the already-working Render origin. This is an environment lookup limitation, not evidence that the purchased domain is unregistered or misconfigured.
-- No website source, live audience, DNS record, custom-domain association or certificate has been changed by this checkpoint.
+- Only the Render custom-domain association and automatic apex redirect were changed. Website source, the main branch, access settings and DNS records were not changed. Certificate issuance remains pending verification.
+- Resume at this exact dashboard page: https://dashboard.render.com/static/srv-dbm4pmjbc2fs738all4g/settings#custom-domains . Obtain the domain's DNS-management platform, set the applicable records above, then verify again and confirm both HTTPS routes before reporting success.
 
 ## Official references checked
 
