@@ -141,6 +141,21 @@
 .stage-actions { margin-top: 4px; }
 .stage-film-tools, .stage-live-tools { margin: 5px 0 13px; }
 .stage-hint { color: #b9cdd0; font-size: .71rem; margin: 13px 0 0; }
+/* A daylight studio for the steel catalogue's fine material and fitting details. */
+body [data-model="steel"] .stage-visual {
+  background: radial-gradient(ellipse at 44% 38%, #f2f7f3 0%, #dbe8e5 48%, #bfd1d0 100%);
+}
+body [data-model="steel"] .stage-visual::after {
+  background: linear-gradient(transparent, #6d8e893d);
+}
+body [data-model="steel"] .stage-status { color: #244f55; }
+body [data-model="steel"] .stage-render { object-fit: contain; background: #cbdcd4; }
+body .stage-panel .stage-inspection { margin: 5px 0 16px; padding-block: 12px; border-block: 1px solid #d7e4df; }
+body .stage-detail-note { min-height: 4.4em; margin: 9px 0 0; color: #526e73; font-size: .74rem; line-height: 1.6; }
+.stage-mount canvas { touch-action: none; }
+@media(max-width:540px) {
+  body [data-model="steel"][data-prefer-live] .stage-visual { min-height: 330px; aspect-ratio: auto; }
+}
 .thermal-cover { position: relative; margin: 25px 0 56px; border: 1px solid var(--line); border-radius: 17px; overflow: hidden; }
 .thermal-cover img { height: clamp(220px, 43vw, 550px); object-position: center 48%; }
 .thermal-cover figcaption { padding: 8px 15px; font-size: .75rem; color: var(--muted); }

@@ -172,7 +172,32 @@ function fitting(group, normal, position, bright, dark, size) {
   const cap = new THREE.Mesh(new THREE.SphereGeometry(size * .32, 16, 8), bright);
   cap.scale.z = .43;
   fixture.add(cap);
+  const outlet = new THREE.Mesh(new THREE.CircleGeometry(size * .14, 16), dark);
+  outlet.position.z = size * .15;
+  fixture.add(outlet);
   group.add(fixture);
+}
+
+function addGrabRails(group, shape, material) {
+  // Optional suite-pool detail, based on the catalogue's rounded grab rails.
+  for (const side of [-1, 1]) {
+    const x = side * shape.width * 1.29;
+    const ends = [-.36, .36].map(z => z * shape.depth);
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(x, .83, ends[0]),
+      new THREE.Vector3(x, 1.035, ends[0] + .035),
+      new THREE.Vector3(x, 1.08, ends[0] + .12),
+      new THREE.Vector3(x, 1.08, ends[1] - .12),
+      new THREE.Vector3(x, 1.035, ends[1] - .035),
+      new THREE.Vector3(x, .83, ends[1])
+    ]);
+    group.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 48, .021, 12, false), material));
+    for (const z of ends) {
+      const foot = new THREE.Mesh(new THREE.CylinderGeometry(.047, .05, .012, 24), material);
+      foot.position.set(x, .844, z);
+      group.add(foot);
+    }
+  }
 }
 
 function assembleBath(kind, shape, time) {
@@ -197,6 +222,11 @@ function assembleBath(kind, shape, time) {
   scene.add(bath);
   const rim = new THREE.Mesh(shellGeometry([[1.344,.796],[1.344,.81],[1.336,.833],[1.32,.845],[1.285,.849],[1.25,.833]], shape), chrome);
   scene.add(rim);
+  if (kind === 'steel') {
+    const reveal = new THREE.Mesh(shellGeometry([[1.338,.696],[1.34,.701],[1.338,.706]], shape), chrome);
+    scene.add(reveal);
+    if (shape.exponent < .5) addGrabRails(scene, shape, chrome);
+  }
   const base = new THREE.Mesh(shellGeometry([[.06,.003],[1.16,.003],[1.195,.012],[1.211,.028],[1.218,.053],[1.216,.082]], shape), recess);
   scene.add(base);
   const warm = kind === 'steel' ? 0xffb575 : 0x7299ff;
@@ -217,6 +247,10 @@ function assembleBath(kind, shape, time) {
   drain.position.set(.37,.174,.10);
   const drainPlate = new THREE.Mesh(new THREE.CylinderGeometry(.081,.082,.012,40), chrome);
   drain.add(drainPlate);
+  const drainRing = new THREE.Mesh(new THREE.TorusGeometry(.073, .0025, 8, 48), recess);
+  drainRing.rotation.x = -Math.PI / 2;
+  drainRing.position.y = .0068;
+  drain.add(drainRing);
   const holes = new THREE.InstancedMesh(new THREE.CircleGeometry(.008,9),recess,19);
   const position = new THREE.Matrix4();
   for (let i=0; i<19; i++) {
@@ -350,10 +384,23 @@ const variants = {
 };
 function cameraViews(kind) {
   const tall = kind !== 'steel';
-  return {
+  const views = {
     full:{azimuth:.48, lift:.47, distance:tall ? 5.17 : 4.55, centre:tall ? 1.17 : .47},
     interior:{azimuth:.37, lift:1.05, distance:tall ? 5.05 : 4.08, centre:tall ? .76 : .44},
     detail:{azimuth:-.77, lift:.64, distance:tall ? 4.13 : 3.24, centre:tall ? .90 : .60}
+  };
+  for (const view of Object.values(views)) Object.assign(view, {targetX: 0, targetZ: 0});
+  return views;
+}
+
+function inspectionViews(shape) {
+  const angle = TAU * (7 + .32) / 10;
+  const [jetX, jetZ] = contour(angle, 1.214, shape);
+  return {
+    rim: {azimuth:.48, lift:.78, distance:2.28, centre:.79, targetX:.75 * shape.width, targetZ:.77 * shape.depth},
+    seat: {azimuth:.20, lift:1.13, distance:2.75, centre:.36, targetX:0, targetZ:.37 * shape.depth},
+    jet: {azimuth:.55, lift:.36, distance:1.82, centre:.525, targetX:jetX, targetZ:jetZ},
+    drain: {azimuth:.22, lift:1.32, distance:1.85, centre:.174, targetX:.37, targetZ:.10}
   };
 }
 
@@ -410,6 +457,7 @@ export function mountModel(mount, kind, variant, options) {
       disposeModel(model.scene);
     }
     variant = next;
+    Object.assign(views, inspectionViews(variants[variant]));
     model = assembleBath(kind, variants[variant], time);
     if (kind === 'signature') haloDetails(model.scene, variant);
     updateJets = kind === 'show' ? waterShow(model.scene,time) : () => {};
@@ -443,9 +491,9 @@ export function mountModel(mount, kind, variant, options) {
     }
     if (playing) time.value += delta;
     const r = view.distance * (camera.aspect < 1 ? Math.min(1.45,1/camera.aspect) : 1);
-    camera.position.set(r*Math.cos(view.lift)*Math.sin(view.azimuth),
-      view.centre+r*Math.sin(view.lift),r*Math.cos(view.lift)*Math.cos(view.azimuth));
-    camera.lookAt(0,view.centre,0);
+    camera.position.set(view.targetX+r*Math.cos(view.lift)*Math.sin(view.azimuth),
+      view.centre+r*Math.sin(view.lift),view.targetZ+r*Math.cos(view.lift)*Math.cos(view.azimuth));
+    camera.lookAt(view.targetX,view.centre,view.targetZ);
     updateJets();
     renderer.render(scene,camera);
     if (playing || tween) wake();
@@ -462,7 +510,7 @@ export function mountModel(mount, kind, variant, options) {
 
   function zoom(amount) {
     tween = null;
-    view.distance = clamp(view.distance + amount,2.8,8.5);
+    view.distance = clamp(view.distance + amount,1.35,8.5);
     wake();
   }
 
@@ -473,7 +521,7 @@ export function mountModel(mount, kind, variant, options) {
 
   const canvas = renderer.domElement;
   canvas.tabIndex=0;
-  canvas.setAttribute('aria-label','Interactive 3D product model / 交互三维产品模型');
+  canvas.setAttribute('aria-label','Interactive 3D product model. Drag or use arrow keys to rotate; plus and minus to zoom.');
   canvas.addEventListener('pointerdown',event=>{
     tween = null;
     pointers.set(event.pointerId,[event.clientX,event.clientY]);
@@ -486,7 +534,7 @@ export function mountModel(mount, kind, variant, options) {
       const other = [...pointers].find(([key])=>key!==event.pointerId)[1];
       const before = Math.hypot(previous[0]-other[0],previous[1]-other[1]);
       const after = Math.hypot(event.clientX-other[0],event.clientY-other[1]);
-      view.distance=clamp(view.distance-(after-before)*.013,2.9,8.5);
+      view.distance=clamp(view.distance-(after-before)*.013,1.35,8.5);
     } else {
       view.azimuth -= (event.clientX-previous[0])*.009;
       view.lift = clamp(view.lift+(event.clientY-previous[1])*.007,.10,1.37);

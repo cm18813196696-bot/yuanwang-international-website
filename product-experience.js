@@ -24,6 +24,9 @@ if (stage) {
   const finish = stage.querySelector('[data-finish]');
   const views = [...stage.querySelectorAll('[data-view]')];
   const variants = [...stage.querySelectorAll('[data-variant]')];
+  const details = [...stage.querySelectorAll('[data-inspect]')];
+  const detailNote = stage.querySelector('.stage-detail-note');
+  const renderedPath = stage.dataset.rendered;
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const filmPath = stage.dataset.film;
   const filmTools = stage.querySelector('.stage-film-tools');
@@ -38,6 +41,40 @@ if (stage) {
   let filmRequested = !reduceMotion.matches;
   let stageVisible = true;
   let dry = false;
+  let selectedVariant = stage.dataset.defaultVariant;
+  let selectedView = 'full';
+  let selectedDetail = null;
+
+  function setDry(value) {
+    dry = value;
+    water?.setAttribute('aria-pressed', String(dry));
+    if (water) setText(water, dry ? 'Refill pool' : 'Reveal dry shell', dry ? '恢复水面' : '查看空池结构');
+    model?.water(!dry);
+  }
+
+  function showDetail(button) {
+    selectedDetail = button.dataset.inspect;
+    selectedView = selectedDetail;
+    pressed(details, button);
+    pressed(views, null);
+    if (detailNote) detailNote.textContent = button.dataset.detail;
+    if (!model) {
+      if (modelUnavailable && renderedPath) showRendered(selectedDetail);
+      else if (!modelUnavailable) startModel();
+      return;
+    }
+    model.view(selectedView);
+    setPlaying(false);
+    if (selectedDetail !== 'rim') setDry(true);
+    setText(status, 'Detail view · ' + button.textContent.trim(), '细节视角 · ' + button.textContent.trim());
+  }
+
+  function clearDetail() {
+    selectedDetail = null;
+    pressed(details, null);
+    if (detailNote) detailNote.textContent = detailNote.dataset.default;
+    setText(status, 'Live 3D · Drag to rotate', '实时三维 · 拖动旋转');
+  }
 
   function setPlaying(value) {
     playing = value;
@@ -59,11 +96,29 @@ if (stage) {
     } else film.pause();
   }
 
+  function showRendered(name) {
+    model?.destroy();
+    model = undefined;
+    film?.pause();
+    const image = document.createElement('img');
+    image.className = 'stage-render';
+    image.src = renderedPath + '/' + name + '.webp';
+    image.alt = 'Suite pool 3D study: ' + ({full:'complete pool',rim:'rounded rim and grab rails',seat:'dry shell, integrated seat and step',jet:'recessed jet fitting',drain:'perforated floor drain'}[name] || name);
+    image.addEventListener('error', () => { if (image.isConnected) showFilm(); }, {once:true});
+    mount.replaceChildren(image);
+    for (const control of controls) control.hidden = true;
+    if (filmTools) filmTools.hidden = true;
+    if (liveTools) liveTools.hidden = false;
+    setText(copy, 'Explore the curved shell, seating and fittings in five rendered 3D views. Select a detail below, or watch the product film.', '通过五个三维渲染视角近看池体、坐台与配件，也可观看产品短片。');
+    setText(status, 'Rendered 3D study · Suite pool', '三维渲染展示 · 方形私汤');
+  }
+
   function showFilm() {
     model?.destroy();
     model = undefined;
     for (const control of controls) control.hidden = true;
     if (liveTools) liveTools.hidden = true;
+    pressed(details, null);
     if (!filmPath) {
       mount.replaceChildren(poster);
       setText(stage.querySelector('#model-title'), 'Water choreography', '水舞编排');
@@ -106,15 +161,16 @@ if (stage) {
 
   function fallback() {
     modelUnavailable = true;
-    showFilm();
+    if (renderedPath) showRendered(selectedDetail || 'full');
+    else showFilm();
   }
 
   async function startModel() {
     if (liveMode) liveMode.disabled = true;
     try {
-      const {mountModel} = await import('./spa-model.js');
+      const {mountModel} = await import('./spa-model.js?v=steel-detail-2');
       film?.pause();
-      model = mountModel(mount, stage.dataset.model, stage.dataset.defaultVariant, {
+      model = mountModel(mount, stage.dataset.model, selectedVariant, {
         reducedMotion: reduceMotion.matches,
         onLost: fallback,
       });
@@ -122,12 +178,14 @@ if (stage) {
       if (liveTools) liveTools.hidden = false;
       setText(copy, ...modelCopy);
       for (const control of controls) control.hidden = false;
-      pressed(variants, variants[0]);
-      pressed(views, views[0]);
+      pressed(variants, variants.find(button => button.dataset.variant === selectedVariant));
+      pressed(views, views.find(button => button.dataset.view === selectedView));
       setText(status, 'Live 3D · Drag to rotate', '实时三维 · 拖动旋转');
-      setPlaying(!reduceMotion.matches);
+      setPlaying(playing);
       if (finish) model.finish(finish.value);
       model.water(!dry);
+      model.view(selectedView);
+      if (selectedDetail) showDetail(details.find(button => button.dataset.inspect === selectedDetail));
     } catch (error) {
       console.warn('Interactive product viewer is unavailable.', error);
       fallback();
@@ -152,7 +210,8 @@ if (stage) {
     if (!started && stageVisible) {
       started = true;
       modelUnavailable = !canRenderModel();
-      if (filmPath || modelUnavailable) showFilm();
+      if (modelUnavailable && renderedPath) showRendered('full');
+      else if (modelUnavailable || (filmPath && !stage.hasAttribute('data-prefer-live'))) showFilm();
       else startModel();
     }
     playFilmIfVisible();
@@ -172,14 +231,20 @@ if (stage) {
     setPlaying(!event.matches);
   });
   for (const button of views) button.addEventListener('click', () => {
-    model?.view(button.dataset.view);
+    selectedView = button.dataset.view;
+    model?.view(selectedView);
+    clearDetail();
     pressed(views, button);
   });
+  for (const button of details) button.addEventListener('click', () => showDetail(button));
   for (const button of variants) button.addEventListener('click', () => {
-    model?.variant(button.dataset.variant);
+    selectedVariant = button.dataset.variant;
+    selectedView = 'full';
+    model?.variant(selectedVariant);
     if (finish) model?.finish(finish.value);
     model?.water(!dry);
     model?.view('full');
+    clearDetail();
     pressed(views, views[0]);
     pressed(variants, button);
   });
@@ -188,10 +253,7 @@ if (stage) {
   }
   finish?.addEventListener('change', () => model?.finish(finish.value));
   water?.addEventListener('click', () => {
-    dry = !dry;
-    water.setAttribute('aria-pressed', String(dry));
-    setText(water, dry ? 'Refill pool' : 'Reveal dry shell', dry ? '恢复水面' : '查看空池结构');
-    model?.water(!dry);
+    setDry(!dry);
   });
 }
 
