@@ -44,6 +44,7 @@ Primary references reviewed: EUR-Lex Regulation (EU) 2023/1230; GOV.UK GB machin
 - Added direct PDF downloads for the English policy and all four records, generated from the same HTML. All 19 pages were rendered and visually reviewed; text bounds pass. Fixed split writing boxes in the annual report and improved table column proportions.
 - PDF inventory: policy 12 pages; service request 1; overseas project record 2; annual report 3; commissioning checklist 1. PDF generation: `python tools/export-after-sales-pdfs.py` (ReportLab, lxml, DejaVu fonts).
 - Browser download of the policy PDF passed. Browser-native print output could not be inspected in this cloud browser; the verified direct PDFs are the dependable download option. The page retains standard print buttons and styles.
+- Repeated-generation check passed after fixing duplicate resource-centre cards: rebuilding retains exactly one after-sales entry and produces identical HTML bytes.
 - Code, generated HTML, the five PDFs, both reproducible generators and this log are preserved in `archive/after-sales-2026-11-08`.
 
 ## Publication and future continuation

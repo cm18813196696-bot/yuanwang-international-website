@@ -294,9 +294,10 @@ record('support-commissioning-checklist.html','Installation & commissioning chec
 
 resources=ROOT/'resources.html'
 text=resources.read_text()
-if 'support-service-request.html' not in text:
-    card='<a class="hub-card" href="support.html"><h2>Overseas after-sales service</h2><p>Response targets, warranty, maintenance and four printable service records.</p><span>Explore →</span></a>'
-    text=text.replace('<div class="hub-grid">','<div class="hub-grid">'+card)
-    resources.write_text(text)
+# Rebuilding must retain exactly one resource entry.
+text=re.sub(r'<a class="hub-card"(?: data-after-sales-resource)? href="support.html"><h2>Overseas after-sales service</h2>.*?</a>', '', text, flags=re.S)
+card='<a class="hub-card" data-after-sales-resource href="support.html"><h2>Overseas after-sales service</h2><p>Response targets, warranty, maintenance and four printable service records.</p><span>Explore →</span></a>'
+text=text.replace('<div class="hub-grid">','<div class="hub-grid">'+card)
+resources.write_text(text)
 
 print('Built support policy, 4 English printable records and resource-centre entry.')
