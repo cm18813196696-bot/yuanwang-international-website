@@ -1,6 +1,6 @@
 # Stainless steel pool studio — 8 November 2026
 
-Status: implementation checkpoint; rendered assets and visual verification pending. This checkpoint is not deployed.
+Status: release candidate complete. Five rendered views and browser fallback checks pass; production deployment is the next action. Earlier checkpoint commits preserve work in progress.
 
 Base: 21e37330757af940d006e7d74b630a428e4a4dfc on the original main branch.
 
@@ -29,15 +29,20 @@ python tools/package-steel-renders.py /absolute/path/render-output assets/collec
 
 Packaging suppresses Monte Carlo grain while preserving model edges and converts the views to WebP.
 
-## Checks so far
+## Validation completed before publication
 
 - Both changed frontend JavaScript files pass Node syntax checks.
 - All 64 HTML files retain valid local asset and fragment references.
 - All exported mesh vertices, indices, instance matrices and five camera views pass structural and finite-number checks.
-- The current preview browser has no WebGL2 support. Its film fallback was observed; real-time GPU rendering is not verified here.
+- The current preview browser has no WebGL2 support. All four rendered detail views, Overview and film return were browser-verified; real-time GPU rendering and its finish/variant controls remain unverified in this browser.
+
+- All five rendered views were visually reviewed. The dry-shell floor is closed and jet bezels no longer intersect the local pool wall.
+- Five 1200 × 900 WebP views total 385,726 bytes.
+- The original 13 steel catalogue boards, category filtering and image-viewer modal were retained and checked. The signature product page still renders its fallback film.
+- Reproducible export, CPU-render and packaging scripts are included.
 
 ## Next checkpoint
 
-Inspect the five rendered views, verify the fallback detail buttons and film return in the browser, and check shared product pages before publishing. Save the final source and deployment result here.
+Publish this release candidate to the existing main branch, verify the live deployment and page, and append the deployed commit and result to the archive branch. Then continue with one bounded improvement to the signature-product studio. Direct Douyin/Xiaohongshu profile links and custom domains remain separate outstanding tasks.
 
-Visual QA found an open centre at the dry-shell floor and jet bezels intersecting non-circular walls. The floor is now closed to the centreline, and jet fittings use the local contour normal with an inward mounting offset. The affected renders are being regenerated before publication.
+Visual QA found an open centre at the dry-shell floor and jet bezels intersecting non-circular walls. The floor is now closed to the centreline, and jet fittings use the local contour normal with an inward mounting offset. The affected renders were regenerated and visually reviewed before publication.
