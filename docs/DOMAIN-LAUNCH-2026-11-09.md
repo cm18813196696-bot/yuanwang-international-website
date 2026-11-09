@@ -42,3 +42,12 @@ The source restoration script was syntax-checked, but its full PDF extraction wo
 After any future page generation, run `python tools/promote-production.py` before committing.
 Render auto-deploys commits to `main`; inspect the deployment's commit before reporting a subsequent release as live.
 Allowing crawlers does not guarantee immediate search-engine indexing.
+
+## Google Search Console — completed 9 November 2026
+
+- Added the Domain property `sc-domain:yuanwangspa.com` to the user's signed-in Google account.
+- Verified domain ownership through an enabled TXT record at `@` in Aliyun DNS. Retain that DNS record to preserve verification.
+- Submitted `https://www.yuanwangspa.com/sitemap.xml`.
+- Search Console visibly reports **Success** and **67 discovered pages**, with the last read dated 9 November 2026.
+- Sitemap submission and discovered-page count do not establish that all pages are indexed or rank in search. The new property's performance/index reports are still processing.
+- No additional hosting plan or paid search product was purchased.
