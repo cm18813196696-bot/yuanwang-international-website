@@ -79,3 +79,7 @@ for f in R.glob('*.html'):
  f.write_text(s)
 f=R/'solutions.html';s=f.read_text().replace('<section class="wrap" id="geothermal">','<section class="wrap" id="geothermal"><p><a class="btn" href="geothermal.html">Complete geothermal technical library - 78 pages</a></p>');f.write_text(s)
 (R/'content/localised-plate-map.json').write_text(json.dumps(mapping,indent=2));print('Restored 78 source plates,',len(mapping),'existing bilingual plates, 9 geothermal pages and 3 business hubs')
+
+# Keep restored pages aligned with the public production domain.
+import runpy
+runpy.run_path(str(R / 'tools' / 'promote-production.py'), run_name='__main__')

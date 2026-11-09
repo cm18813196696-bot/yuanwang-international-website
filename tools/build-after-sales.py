@@ -40,7 +40,7 @@ footer = re.search(r'<footer class="site-footer">.*?</footer>', source, re.S).gr
 def page(title, description, body, extra_class=''):
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#e9f2ef">
+<meta name="robots" content="index,follow"><meta name="theme-color" content="#e9f2ef">
 <title>{ESC(title)} | YUANWANG</title><meta name="description" content="{ESC(description)}">
 <link rel="icon" href="assets/yuanwang-symbol.svg"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="spa-theme.css"><link rel="stylesheet" href="site-polish.css"><link rel="stylesheet" href="after-sales.css">
 </head><body class="support-page {extra_class}"><a class="skip-link" href="#main-content">Skip to content</a>{header}
@@ -301,3 +301,7 @@ text=text.replace('<div class="hub-grid">','<div class="hub-grid">'+card)
 resources.write_text(text)
 
 print('Built support policy, 4 English printable records and resource-centre entry.')
+
+# Keep generated pages aligned with the public production domain.
+import runpy
+runpy.run_path(str(ROOT / 'tools' / 'promote-production.py'), run_name='__main__')
