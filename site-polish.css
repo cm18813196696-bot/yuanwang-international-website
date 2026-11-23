@@ -125,3 +125,26 @@ body .modal.show{z-index:120}
  .hub-form #copy-enquiry{margin:10px 0 0}
 }
 @media(prefers-reduced-motion:reduce){.nav-dropdown,.hub-card img{animation:none;transition:none}}
+
+/* Company profile additions — Nov 2026 */
+.profile-lead{max-width:880px;margin-block:8px 40px}
+.profile-lead p{color:var(--water-muted);max-width:72ch}
+body .profile-lead .profile-slogan{font:400 clamp(1.3rem,2.6vw,1.9rem)/1.35 Georgia,serif;color:var(--water-ink);margin:0 0 14px}
+.profile-facts{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--water-line);border-bottom:1px solid var(--water-line)}
+.profile-facts li{padding:18px 16px 18px 0}
+.profile-facts li+li{padding-left:16px;border-left:1px solid var(--water-line)}
+.profile-facts strong{display:block;font:400 clamp(1.6rem,3vw,2.3rem)/1.1 Georgia,serif;color:var(--water-accent)}
+.profile-facts span{font-size:12px;color:var(--water-muted)}
+.patent-list{list-style:none;padding:0;margin:20px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:0 28px}
+.patent-list li{padding:12px 0 12px 22px;border-bottom:1px solid var(--water-line);position:relative;color:var(--water-ink)}
+.patent-list li::before{content:"";position:absolute;left:0;top:21px;width:8px;height:8px;border-radius:50%;background:var(--water-accent)}
+.profile-section>p{max-width:80ch;color:var(--water-muted)}
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:18px;margin-top:30px}
+.ref-card{border:1px solid var(--water-line);background:#fff;padding:24px;border-radius:10px;color:var(--water-ink)}
+.ref-card small{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--water-accent)}
+.ref-card h3{font:400 23px/1.25 Georgia,serif;margin:10px 0 6px}
+.ref-card .ref-loc{font-size:13px;color:var(--water-muted);margin:0 0 12px}
+.ref-card p{font-size:14px;line-height:1.65}
+.ref-card a{font-size:13px;color:var(--water-accent)}
+.office-card{margin-top:20px}
+@media(max-width:640px){.profile-facts{grid-template-columns:repeat(2,1fr)}.profile-facts li:nth-child(3){padding-left:0;border-left:0}.profile-facts li:nth-child(n+3){border-top:1px solid var(--water-line)}}

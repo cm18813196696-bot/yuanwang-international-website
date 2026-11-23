@@ -42,7 +42,7 @@ def page(title, description, body, extra_class=''):
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="index,follow"><meta name="theme-color" content="#e9f2ef">
 <title>{ESC(title)} | YUANWANG</title><meta name="description" content="{ESC(description)}">
-<link rel="icon" href="assets/yuanwang-symbol.svg"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="spa-theme.css"><link rel="stylesheet" href="site-polish.css"><link rel="stylesheet" href="after-sales.css">
+<link rel="icon" href="assets/yuanwang-logo-vector.svg"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="spa-theme.css"><link rel="stylesheet" href="site-polish.css"><link rel="stylesheet" href="after-sales.css">
 </head><body class="support-page {extra_class}"><a class="skip-link" href="#main-content">Skip to content</a>{header}
 {body}{footer}<script src="site-polish.js" defer></script><script src="after-sales.js" defer></script></body></html>'''
 
