@@ -14,7 +14,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 ROOT=Path(__file__).resolve().parent.parent
 OUT=ROOT/'downloads'
 OUT.mkdir(exist_ok=True)
-FONT=Path('/usr/share/fonts/truetype/dejavu')
+import os
+FONT=Path(os.environ.get('YW_FONT_DIR','/usr/share/fonts/truetype/dejavu'))
 for name,file in [('YWText','DejaVuSans.ttf'),('YWTextBold','DejaVuSans-Bold.ttf'),('YWTitle','DejaVuSerif.ttf')]:
     pdfmetrics.registerFont(TTFont(name,str(FONT/file)))
 pdfmetrics.registerFontFamily('YWText',normal='YWText',bold='YWTextBold',italic='YWText',boldItalic='YWTextBold')
@@ -119,7 +120,7 @@ def footer(canvas,doc):
 
 files=[('support.html','YUANWANG-Overseas-After-Sales-Policy-EN.pdf','Overseas after-sales service policy'),('support-service-request.html','YUANWANG-Service-Request-Form-EN.pdf','Service request form'),('support-project-record.html','YUANWANG-Overseas-Project-Record-EN.pdf','Overseas project record'),('support-annual-report.html','YUANWANG-Annual-System-Health-Report-EN.pdf','Annual system health report'),('support-commissioning-checklist.html','YUANWANG-Commissioning-Checklist-EN.pdf','Installation & commissioning checklist')]
 for source,name,title in files:
-    tree=html.fromstring((ROOT/source).read_text())
+    tree=html.fromstring((ROOT/source).read_text(encoding='utf-8'))
     story=[paragraph('YUANWANG / OVERSEAS SERVICE','small'),paragraph(title,'title'),paragraph('YW-AFS-2026-01 - V1.0 - Effective 8 November 2026','small')]
     if source=='support.html':
         story.append(paragraph('For hot spring, swimming pool, geothermal and non-medical wellness equipment in the EU / EEA and Great Britain. Signed contract terms and applicable mandatory requirements govern.'))
