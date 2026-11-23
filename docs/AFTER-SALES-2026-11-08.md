@@ -19,7 +19,7 @@ Base: b65ce89119094c226151973f0c246eb15ee3a90c. Existing Render site: yuanwang-i
 - Added an accessible local service-report builder: validates complete information, prepares an email, copies text or downloads a text report. It does not create a server ticket or claim successful sending.
 - Added four standalone English printable records: service request, overseas project record, annual health report and commissioning checklist. Full-policy printing opens collapsed details for print, then restores their state.
 - Added the policy to the resource centre. Shared navigation, palette and footer are retained.
-- Unfilled `service@[domain]` and `+86-10-XXXX-XXXX` placeholders are never published. Existing company office 317196186@qq.com and +86 10 5861 4186 assist routing; formal registration uses the contract-designated service channel.
+- Unfilled `service@[domain]` and `+86-10-XXXX-XXXX` placeholders are never published. Existing company office chenlian1607@gmail.com and +86 186 1252 1168 assist routing; formal registration uses the contract-designated service channel.
 - Reproducible content generator: `python tools/build-after-sales.py`.
 - Structural validation: all 67 HTML pages have valid local file and fragment references; English service pages have no Chinese body text or unfilled contact placeholders. app.js and after-sales.js syntax checks pass.
 

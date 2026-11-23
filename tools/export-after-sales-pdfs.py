@@ -125,7 +125,7 @@ for source,name,title in files:
         story.append(paragraph('For hot spring, swimming pool, geothermal and non-medical wellness equipment in the EU / EEA and Great Britain. Signed contract terms and applicable mandatory requirements govern.'))
         for sec in tree.xpath('//main/section'):
             if sec.get('id')=='service-request':
-                story.extend([paragraph('Prepare a complete fault report.','h2'),paragraph('Use the separate Service Request Form and send it with photographs, video references and operating logs through the service channel in your contract. For an emergency, call the designated project contact. Company office for routing: 317196186@qq.com; +86 10 5861 4186; 09:00-18:00 Beijing (UTC+8). Languages: Chinese and English.')])
+                story.extend([paragraph('Prepare a complete fault report.','h2'),paragraph('Use the separate Service Request Form and send it with photographs, video references and operating logs through the service channel in your contract. For an emergency, call the designated project contact. Company office for routing: chenlian1607@gmail.com; +86 186 1252 1168; 09:00-18:00 Beijing (UTC+8). Languages: Chinese and English.')])
             else:story.extend(walk(sec))
         story.extend([paragraph('Official reference links','h3')]+[paragraph(label+': '+url,'small') for label,url in [
             ('EU machinery regulation','https://eur-lex.europa.eu/eli/reg/2023/1230/oj'),

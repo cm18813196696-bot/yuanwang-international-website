@@ -19,7 +19,7 @@
   function prepare() {
     if (!form.reportValidity()) return null;
     const data = new FormData(form);
-    const recipient = String(data.get('recipient') || '').trim() || '317196186@qq.com';
+    const recipient = String(data.get('recipient') || '').trim() || 'chenlian1607@gmail.com';
     const subject = `YUANWANG Service Request | ${data.get('priority')} | ${data.get('project')}`;
     const body = 'YUANWANG OVERSEAS SERVICE REQUEST\nYW-AFS-2026-01\n\n' +
       labels.map(([key, label]) => `${label}:\n${String(data.get(key) || 'Not provided').trim()}`).join('\n\n') +
