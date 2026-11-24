@@ -53,7 +53,6 @@ def main():
             changed += 1
         if page.name not in NOT_INDEXED:
             urls.append(url)
-    urls.append(ORIGIN + '/stavsjo/')
 
     namespace = 'http://www.sitemaps.org/schemas/sitemap/0.9'
     ET.register_namespace('', namespace)
