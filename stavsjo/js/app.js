@@ -152,7 +152,7 @@ let hero;
 function startHero(){
   if(hero||!window.STAVSJO3D)return;
   try{hero=STAVSJO3D.viewer($('#hero3d'),{zoom:false,spin:.12,maxDpr:1.5,offsetX:-.5});
-    if(hero){const m=STAVSJO_BUILD('icon',{form:'moon',finish:'mirror',led:'warm',size:2.2},'aurora');const nar=innerWidth<900;m.cam=Object.assign({},m.cam,nar?{dist:11.5,pitch:.18,yaw:.9,lift:.28}:{dist:8.6,pitch:.16,yaw:.9});hero.setModel(m)}
+    if(hero){const he=new URLSearchParams(location.search).get('he');const m=STAVSJO_BUILD('icon',{form:'moon',finish:'mirror',led:'warm',size:2.2},STAVSJO_ENVS.some(e=>e[0]===he)?he:'zen');const nar=innerWidth<900;m.cam=Object.assign({},m.cam,nar?{dist:11.5,pitch:.18,yaw:.9,lift:.28}:{dist:8.6,pitch:.16,yaw:.9});hero.setModel(m)}
   }catch(e){console.error(e)}
 }
 
@@ -194,7 +194,11 @@ function openStudio(){
       else if(t.type==='checkbox'){state[curKey][c.id]=t.checked}
       rebuild(true)});
     try{studio=STAVSJO3D.viewer($('#studio3d'),{spin:.1})}catch(e){console.error(e)}
+    // a shared design link can carry the product, setting and options: ?p=tub&e=sea&shape=oct&finish=brushed
+    const q=new URLSearchParams(location.search),qp=q.get('p'),qe=q.get('e');
+    if(qp&&state[qp]){pendingProduct=qp;const st=state[qp];q.forEach((v,k)=>{if(k in st)st[k]=typeof st[k]==='number'?+v:typeof st[k]==='boolean'?(v==='1'||v==='true'):v})}
     pickProduct(pendingProduct||curKey);pendingProduct=null;
+    if(qe&&STAVSJO_ENVS.some(x=>x[0]===qe)){curEnv=qe;drawControls();rebuild(false)}
   }else if(pendingProduct){pickProduct(pendingProduct);pendingProduct=null}
 }
 window.STAVSJO_APP={pick:pickProduct,env:e=>{curEnv=e;drawControls();rebuild(true)},set:(id,v)=>{state[curKey][id]=v;drawControls();rebuild(true)},viewers:()=>({hero,studio})};
@@ -262,7 +266,7 @@ document.addEventListener('click',e=>{const a=e.target.closest('a[href^="https:/
 const ck=$('#ck');
 const getC=()=>{try{return JSON.parse(localStorage.getItem('stavsjo_consent'))}catch(_){return null}};
 const setC=v=>{try{localStorage.setItem('stavsjo_consent',JSON.stringify(Object.assign({necessary:true,date:new Date().toISOString()},v)))}catch(_){}ck.classList.remove('open','more');if(v.analytics)loadGA();else if(gaOn)location.reload()};
-const saved=getC();if(!saved)setTimeout(()=>ck.classList.add('open'),900);else{$('#ckA').checked=!!saved.analytics;$('#ckM').checked=!!saved.marketing;if(saved.analytics)loadGA()}
+const saved=getC();if(!saved){if(!/[?&]still=1/.test(location.search))setTimeout(()=>ck.classList.add('open'),900)}else{$('#ckA').checked=!!saved.analytics;$('#ckM').checked=!!saved.marketing;if(saved.analytics)loadGA()}
 $('#ckYes').onclick=()=>{$('#ckA').checked=$('#ckM').checked=true;setC({analytics:true,marketing:true})};
 $('#ckNo').onclick=()=>{if(ck.classList.contains('more'))setC({analytics:$('#ckA').checked,marketing:$('#ckM').checked});else{$('#ckA').checked=$('#ckM').checked=false;setC({analytics:false,marketing:false})}};
 $('#ckMore').onclick=()=>{const m=ck.classList.toggle('more');$('#ckNo').textContent=m?'Save my choices':'Necessary only';$('#ckMore').textContent=m?'Hide preferences':'Manage preferences'};

@@ -258,10 +258,10 @@ function iconSpa(p){
     const cl=[];for(let k=0;k<26;k++){const a=k/26*TAU+rnd()*.2,s=.22+rnd()*.2;cl.push(G.move(G.scale(G.sphere(1,22),s*1.25,s,s*1.1),Math.cos(a)*(R+.12),H-.05+rnd()*.12,Math.sin(a)*(R+.12)))}
     for(let k=0;k<10;k++){const a=rnd()*TAU,s=.3+rnd()*.25;cl.push(G.move(G.scale(G.sphere(1,22),s*1.3,s*.8,s),Math.cos(a)*(R+.45),.15+rnd()*.25,Math.sin(a)*(R+.45)))}
     const puff=g=>{const ys=[];for(let k=1;k<g.p.length;k+=3)ys.push(g.p[k]);const y0=Math.min(...ys),y1=Math.max(...ys);g.c=[];for(let k=0;k<g.p.length;k+=3){const t=.62+.38*(g.p[k+1]-y0)/((y1-y0)||1);g.c.push(t,t,t*1.02)}return g};
-    P.push([puff(G.merge(...cl)),{type:4,col:[1,1,1],emis:.95}]);
+    P.push([puff(G.merge(...cl)),{type:4,col:[1,1,1],emis:.95,cloud:1}]);
     // floating canopy cloud with rain
     if(p.canopy){const cc=[];for(let k=0;k<14;k++){const a=rnd()*TAU,r=rnd()*R*.55,s=.3+rnd()*.25;cc.push(G.move(G.scale(G.sphere(1,22),s*1.3,s*.75,s),Math.cos(a)*r,H+2.1+rnd()*.25,Math.sin(a)*r))}
-      P.push([puff(G.merge(...cc)),{type:4,col:[1,1,1],emis:.9}]);
+      P.push([puff(G.merge(...cc)),{type:4,col:[1,1,1],emis:.9,cloud:1}]);
       P.push([G.lathe([[R*.45,H+2],[R*.5,H-.02]],48),mat('water',{col:[.85,.92,.96],alpha:.07,wave:0})]);}
     // glass stairs
     const f={x:R+.1,z:0,nx:1,nz:0},st=[];for(let k=0;k<4;k++)st.push(G.box(.32,.04,.8,.25+k*.32,H-.14*(k+1)+.02,0));
@@ -320,7 +320,7 @@ function sauna(p){
     wash.push(washQ(Wd-.1,y-.42,y-.05,zs+.018));strips.push(G.box(Wd-.1,.014,.014,0,y-.045,zs+.02))});
   wash.push(washQ(Wd-.1,hs[0]+.2,hs[0]+.58,-Dp/2+.035));strips.push(G.box(Wd-.1,.014,.014,0,hs[0]+.58,-Dp/2+.05));
   P.push([G.merge(...tops),mat('wood',{col:[1,1,1],rough:.5})]);P.push([G.merge(...skirts),mat('wood',{col:[1,1,1]})]);
-  P.push([G.merge(...wash),{type:4,col:[1,1,1],emis:1.2}]);P.push([G.merge(...strips),{type:4,col:led,emis:4}]);
+  P.push([G.merge(...wash),{type:4,col:[1,1,1],emis:1.2,wash:1}]);P.push([G.merge(...strips),{type:4,col:led,emis:4}]);
   P.push([G.box(Wd-.1,.09,.035,0,hs[0]+.45,-Dp/2+.06),mat('wood',{col:light})]);
   const hx=Wd/2-.42,hz=Dp/2-.4;
   P.push([G.merge(G.rbox(.5,.75,.42,.04,hx,.06,hz),G.box(.56,.04,.48,hx,.83,hz)),mat('dark',{col:[.18,.18,.19],rough:.45})]);
@@ -392,72 +392,22 @@ function planters(P,pts,leaf=[.2,.38,.15],pot=[.75,.74,.7]){const po=[],lv=[];pt
 function trees(P,n,r0,r1,snow){const lf=[],tr=[];around(n,r0,r1,(x,z)=>{const t=pine(4.5+rnd()*5),sh=.75+rnd()*.5;lf.push(G.colorAll(at(t.leaf,x,z,rnd()*6),[sh,sh,sh]));tr.push(at(t.trunk,x,z))});
   P.push([G.merge(...lf),{type:0,col:snow?[.5,.62,.66]:[.12,.26,.14],rough:.9}]);P.push([G.merge(...tr),{type:0,col:[.25,.17,.12],rough:.9}])}
 
+/* Real-world settings. Each one is a photographed 360° HDR environment
+   (see js/render3d.js) plus a textured ground pad that fades into the photo
+   and a shadow catcher so the product's shadow lands on the real ground. */
+const pad=(c,R,tex,extra)=>[G.ground(c.base,R,.003),Object.assign({type:0,col:[1,1,1],rough:1,tex,fade:[R*.55,R],ground:1},extra||{})];
+const catcher=(c,a)=>[G.ground(c.base,60,.004),{type:8,alpha:a??.5,ground:1}];
 const ENVS={
-  zen(c){const r=c.r,P=[[G.ground(c.base,80,0),{type:0,col:[.62,.61,.58],rough:.95,pat:5}]];
-    // raked gravel rings and a stepping-stone path
-    const rings=[];for(let k=0;k<7;k++)rings.push(G.lathe([[r+.35+k*.22,.006],[r+.42+k*.22,.014],[r+.49+k*.22,.006]],96));
-    P.push([G.merge(...rings),{type:0,col:[.7,.69,.66],rough:.95,pat:5}]);
-    const ss=[];for(let k=0;k<6;k++)ss.push(at(G.scale(G.cyl(1,.05,20),.32+rnd()*.06,1,.26+rnd()*.05),r+1.9+k*.75,.35*Math.sin(k*1.3)+1.1,rnd()*3));P.push([G.merge(...ss),{type:0,col:[.42,.41,.39],rough:.8,pat:5}]);
-    // dark timber screen wall behind
-    const R=r+7.5,sl=[];for(let k=-40;k<=40;k++){const a=Math.PI*1.05+k*.012,x=Math.cos(a)*R,z=Math.sin(a)*R;sl.push(at(G.box(.06,2.6,.06,0,1.3,0),x,z,-a))}
-    P.push([G.merge(...sl),{type:0,col:[.16,.11,.08],rough:.6,grain:1}]);
-    // maples, rocks, lanterns, moss mounds
-    const lf=[],tr=[];[[-(r+5.2),-(r+3.4)],[r+5.6,-(r+4.6)],[-(r+6.4),r+3.2],[r+2.2,-(r+6.8)]].forEach(([x,z],i)=>{tr.push(G.move(G.tube([[0,0,0],[.1,1.2,.05],[-.15,2.1,.1],[.2,2.8,0]],.08,8,6),x,0,z));
-      for(let k=0;k<46;k++){const s=.16+rnd()*.2,t=.7+rnd()*.45,a=rnd()*TAU,rr=Math.sqrt(rnd())*1.5;lf.push(G.colorAll(G.move(G.scale(G.sphere(1,10),s,s*.7,s),x+Math.cos(a)*rr,2.4+rnd()*1.1-rr*.25,z+Math.sin(a)*rr),[t,t*(.8+rnd()*.5),t]))}});
-    P.push([G.merge(...lf),{type:0,col:[.62,.15,.07],rough:.85}]);P.push([G.merge(...tr),{type:0,col:[.2,.13,.09],rough:.9}]);
-    const rk=[];around(6,r+1.6,r+3.6,(x,z)=>rk.push(at(rock(.3+rnd()*.45),x,z,rnd()*6)));P.push([G.merge(...rk),{type:0,col:[.38,.38,.37],rough:.85,pat:5}]);
-    const ms=[];around(8,r+1.2,r+4,(x,z)=>ms.push(at(G.scale(G.sphere(1,12),.5+rnd()*.5,.12+rnd()*.1,.4+rnd()*.4),x,z)));P.push([G.merge(...ms),{type:0,col:[.2,.34,.14],rough:.95,pat:4}]);
-    lanterns(P,[[r+1.4,-(r*.6),.6],[-(r+1.3),r*.4,.5],[r*.4,r+1.5,.42]]);
-    return {parts:P,env:{skyTop:[.16,.2,.36],skyHor:[.95,.66,.48],gnd:[.2,.18,.16],sun:[-.7,.12,.6],sunCol:[1,.72,.5],sunGlow:1.1,cloud:.35,sil:1,silC:[.06,.1,.08],fog0:Math.max(12,r*3+6),fog1:Math.max(60,r*14),expo:1.15,pl:[r+1.4,.9,-(r*.6)],plc:[1,.62,.3]}}},
-  studio(c){const P=[[G.ground(c.base,70,0),{type:0,col:[.2,.21,.22],rough:.16}]];
-    return {parts:P,env:{skyTop:[.1,.11,.12],skyHor:[.4,.42,.44],gnd:[.3,.31,.32],sun:[.4,.8,.4],sunCol:[.9,.92,.95],sunGlow:0,box:1.5,fog0:9,fog1:38,expo:1.1}}},
-  rotunda(c){const P=[[G.ground(c.base,60,0),{type:0,col:[.66,.6,.52],rough:.18,pat:2,patS:1.2}]],R=Math.max(c.r*2+5,12),n=12,col=[],cap=[],base=[];
-    for(let k=0;k<n;k++){const a=k/n*TAU,x=Math.cos(a)*R,z=Math.sin(a)*R;
-      base.push(G.move(G.lathe([[0,0],[.62,0],[.62,.25],[.52,.32],[.5,.42],[0,.42]],28),x,0,z));
-      col.push(G.move(G.lathe([[0,.42],[.42,.42],[.38,6.4],[0,6.4]],28),x,0,z));
-      cap.push(G.move(G.lathe([[0,6.4],[.38,6.4],[.5,6.75],[.62,6.95],[.66,7.05],[0,7.05]],28),x,0,z))}
-    P.push([G.merge(...base),{type:0,col:[.9,.86,.78],rough:.35}]);P.push([G.merge(...col),{type:0,col:[.95,.92,.85],rough:.3}]);
-    P.push([G.merge(...cap),mat('mirror',{col:[.92,.74,.42],rough:.22})]);
-    P.push([G.lathe([[R-.8,7.05],[R+.9,7.05],[R+.9,7.6],[R-.8,7.6],[R-.8,7.05]],96),{type:0,col:[.93,.9,.84],rough:.4}]);
-    P.push([G.lathe([[R+.8,7.6],[R*.7,9.4],[R*.35,10.6],[0,11]],96),{type:0,col:[.8,.62,.4],rough:.5}]);
-    const lp=[];for(let k=0;k<n;k++){const a=(k+.5)/n*TAU;lp.push(G.move(G.lathe([[0,0],[.12,.05],[.2,.3],[.14,.55],[0,.6]],16),Math.cos(a)*(R-.2),2.2,Math.sin(a)*(R-.2)))}
-    P.push([G.merge(...lp),{type:4,col:[1,.85,.6],emis:2.2}]);
-    return {parts:P,camMax:R-1.2,env:{skyTop:[.7,.62,.5],skyHor:[.92,.85,.74],gnd:[.45,.4,.35],sun:[.3,.75,.4],sunCol:[1,.9,.75],sunGlow:0,box:.45,room:1,fog0:30,fog1:90,expo:.9,pl:[0,6,0],plc:[.55,.42,.28]}}},
-  hall(c){const P=[[G.ground(c.base,60,0),{type:0,col:[.34,.35,.37],rough:.22,pat:2,patS:.9}]],r=c.r;
-    loungeSet(P,r+2.6,2.2,2);planters(P,[[-(r+2.2),-(r+1.2),1.2],[r+2.4,-(r+1.6),1],[-(r+3),r+.6,.9]],[.16,.34,.14],[.2,.2,.21]);
-    lanterns(P,[[r+1.3,r+.9,.5],[-(r+1.2),r+1.5,.38],[r+1.9,r+.5,.34]]);
-    P.push([G.merge(at(G.rbox(1.4,.42,.45,.04),-(r+1.5),-.2,1.2),at(G.rbox(.5,.1,.34,.03,0,.42,0),-(r+1.5),-.2,1.2)),{type:0,col:[.86,.84,.8],rough:.7}]);
-    return {parts:P,env:{skyTop:[.7,.66,.6],skyHor:[.9,.85,.76],gnd:[.34,.33,.33],sun:[-.5,.7,.5],sunCol:[1,.92,.8],sunGlow:0,box:.5,room:1,fog0:12,fog1:46,expo:1,pl:[r+1.3,1.2,r+.9],plc:[.7,.45,.22]}}},
-  roof(c){const R=c.r+6.2,P=[[G.ground(c.base,R,0),{type:0,col:[.4,.3,.23],rough:.5,pat:1,patS:.14}]];
-    P.push([G.sweep(c.base,[[R,0],[R,0],[R,-6]]),{type:0,col:[.2,.2,.22],rough:.8}]);
-    P.push([G.sweep(c.base,[[R-.06,.02],[R-.06,1.05]]),mat('glass',{alpha:.1})]);
-    P.push([G.sweep(c.base,[[R-.09,1.05],[R-.03,1.05],[R-.03,1.09],[R-.09,1.09],[R-.09,1.05]]),mat('steel',{rough:.15})]);
-    const r=c.r;planters(P,[[R-1.1,-1.5,1.3],[-(R-1.2),1.2,1.2],[1,R-1.2,1.1],[-2,-(R-1.1),1.25]],[.17,.32,.16],[.16,.16,.17]);
-    loungeSet(P,r+2.7,3.6,2);lanterns(P,[[r+1.2,r+1,.5],[r+1.7,r+.55,.36],[-(r+1.4),-(r+.9),.42]]);
-    const sx=-(r+2.6),sz=1.2;P.push([G.merge(at(G.rbox(2,.4,.85,.08),sx,sz,1.1),at(G.rbox(2,.75,.22,.08,0,0,-.32),sx,sz,1.1)),{type:0,col:[.9,.88,.84],rough:.9}]);
-    P.push([at(G.cyl(.4,.34,32),sx+1.3,sz+.9),{type:0,col:[.15,.15,.16],rough:.3}]);
-    return {parts:P,env:{skyTop:[.12,.18,.42],skyHor:[.98,.62,.42],gnd:[.14,.12,.14],sun:[-.72,.07,.68],sunCol:[1,.76,.56],sunGlow:1.2,sil:3,silC:[.05,.06,.1],stars:.5,cloud:.45,fog1:0,expo:1.2,pl:[r+1.2,1,r+1],plc:[.9,.55,.25]}}},
-  sea(c){const R=c.r+5.6,P=[[G.ground(c.base,R,0),{type:0,col:[.66,.46,.28],rough:.5,pat:1,patS:.13}]];
-    P.push([G.sweep(c.base,[[R,0],[R,0],[R,-1.4]]),{type:0,col:[.3,.2,.13],rough:.7,grain:1}]);
-    P.push([G.disc(300,-1,48),mat('water',{col:[.02,.2,.3],alpha:1,wave:.7})]);
-    const r=c.r;loungeSet(P,r+2.8,3.9,3);
-    const u=umbrella(),ux=Math.cos(4.3)*(r+3.7),uz=Math.sin(4.3)*(r+3.7);P.push([at(u.metal,ux,uz),mat('steel')]);P.push([at(u.canvas,ux,uz,.3),{type:0,col:[.98,.97,.94],rough:.9}]);
-    planters(P,[[R-1,.8,1.2],[R-1.4,-1.2,1],[-(R-1.3),2,1.1]],[.2,.4,.16],[.7,.38,.24]);
-    return {parts:P,env:{skyTop:[.2,.45,.88],skyHor:[.8,.9,1],gnd:[.05,.25,.34],sun:[.5,.55,.45],sunCol:[1,.96,.88],sunGlow:1,cloud:.95,fog0:60,fog1:290,expo:1.05}}},
-  forest(c){const P=[[G.ground(c.base,110,0),{type:0,col:[.2,.29,.14],rough:.95,pat:4}]],r=c.r;
-    if(!c.hole)P.push([G.sweep(G.circle(r+.1,72),[[0,.012],[1.5,.012],[1.5,.012],[1.52,0]]),{type:0,col:[.62,.62,.6],rough:.75,pat:5}]);
-    trees(P,36,Math.max(15,r*2.2+8),40,false);
-    const rk=[];around(7,r+2.4,r+5,(x,z)=>rk.push(at(rock(.3+rnd()*.5),x,z,rnd()*6)));P.push([G.merge(...rk),{type:0,col:[.5,.5,.49],rough:.9,pat:5}]);
-    const ss=[];for(let k=0;k<7;k++)ss.push(at(G.cyl(.34+rnd()*.08,.03,18),(r+2.1+k*.85),.5*Math.sin(k*1.1),0));P.push([G.merge(...ss),{type:0,col:[.66,.66,.63],rough:.8,pat:5}]);
-    lanterns(P,[[r+1.9,1.1,.5],[-(r+1.7),-1.4,.4]]);
-    return {parts:P,env:{skyTop:[.5,.64,.78],skyHor:[.87,.91,.89],gnd:[.24,.32,.17],sun:[.35,.5,.6],sunCol:[1,.93,.8],sunGlow:1,cloud:.7,sil:1,silC:[.07,.15,.1],fog0:Math.max(11,r*2.2+5),fog1:Math.max(62,r*9),expo:1.05}}},
-  aurora(c){const P=[[G.ground(c.base,110,0),{type:0,col:[.84,.9,.97],rough:.9,pat:3}]],r=c.r;
-    if(!c.hole)P.push([G.sweep(G.circle(r+.1,72),[[0,.03],[1.4,.03],[1.4,.03],[1.42,0]]),{type:0,col:[.3,.2,.14],rough:.6,pat:1,patS:.13}]);
-    trees(P,34,Math.max(17,r*2.2+9),40,true);
-    const sm=[];around(9,r+3,r+8,(x,z)=>sm.push(at(G.scale(G.sphere(1,14),1.2+rnd()*1.6,.16+rnd()*.12,1+rnd()*1.2),x,z,0,-.05)));P.push([G.merge(...sm),{type:0,col:[.84,.9,.97],rough:.9,pat:3}]);
-    lanterns(P,[[r+1.75,1.2,.52],[r+2.1,.5,.36],[-(r+1.8),-1.3,.44],[.6,-(r+1.9),.4]]);
-    return {parts:P,env:{skyTop:[.01,.03,.1],skyHor:[.07,.15,.25],gnd:[.16,.22,.3],sun:[-.4,.55,-.6],sunCol:[.2,.27,.42],sunGlow:.5,stars:1,aurora:1,sil:2,silC:[.04,.06,.11],fog0:Math.max(14,r*2.2+6),fog1:Math.max(80,r*10),expo:1.45,pl:[r+1.75,.9,1.2],plc:[1,.6,.28]}}}
+  zen(c){return {parts:[pad(c,c.r+2.6,'pebble',{col:[.72,.72,.7]}),catcher(c,.55)],env:{key:'zen'}}},
+  studio(c){return {parts:[catcher(c,.45)],env:{key:'studio'}}},
+  rotunda(c){return {parts:[pad(c,c.r+2.2,'marble'),catcher(c,.4)],env:{key:'rotunda'}}},
+  roof(c){return {parts:[pad(c,c.r+3,'deck',{col:[.95,.9,.85]}),catcher(c,.45)],env:{key:'roof'}}},
+  sea(c){return {parts:[pad(c,c.r+3,'deck'),catcher(c,.55)],env:{key:'sea'}}},
+  forest(c){return {parts:[pad(c,c.r+2.6,'pebble'),catcher(c,.45)],env:{key:'forest'}}},
+  snow(c){return {parts:[pad(c,c.r+3.2,'snow'),catcher(c,.5)],env:{key:'snow'}}},
+  aurora(c){return {parts:[pad(c,c.r+2.6,'deck'),catcher(c,.4)],env:{key:'night'}}}
 };
+ENVS.night=ENVS.aurora;ENVS.hall=ENVS.rotunda;
 
 /* =====================================================================
    PUBLIC API
@@ -470,14 +420,14 @@ const PRODUCTS=[
      {id:'size',label:'Spa diameter',type:'range',min:1.6,max:3.2,step:.1,unit:'m'},
      {id:'finish',label:'Steel finish',type:'choice',options:FINISH_OPTS},{id:'led',label:'Lighting',type:'choice',options:LED_OPTS},
      {id:'canopy',label:'Rain cloud canopy',type:'toggle',when:p=>p.form==='cloud'},{id:'steam',label:'Hot spring steam',type:'toggle',when:p=>p.form!=='cloud'}]},
-  {key:'lounge',title:'Hydromassage Lounge Pool',page:'hot-tubs',form:'Full hot spring / spa project',make:loungePool,env:'rotunda',
+  {key:'lounge',title:'Hydromassage Lounge Pool',page:'hot-tubs',form:'Full hot spring / spa project',make:loungePool,env:'roof',
    desc:'Round spa pool with reclining bubble beds, neck-massage spouts and a centre fountain — as built in our hot spring hall projects.',
    defaults:{size:9,beds:8,centre:'fountain',finish:'mirror',led:'warm',neck:true,jets:true,steam:true,water:true},
    controls:[{id:'size',label:'Diameter',type:'range',min:7,max:14,step:.5,unit:'m'},{id:'beds',label:'Hydromassage beds',type:'choice',options:[[6,'6'],[8,'8'],[10,'10'],[12,'12']]},
      {id:'centre',label:'Centre feature',type:'choice',options:[['fountain','Umbrella fountain'],['column','Column'],['none','None']]},
      {id:'finish',label:'Steel finish',type:'choice',options:FINISH_OPTS},{id:'led',label:'Lighting',type:'choice',options:LED_OPTS},
      {id:'neck',label:'Neck-massage spouts',type:'toggle'},{id:'jets',label:'Bubble beds running',type:'toggle'},{id:'steam',label:'Hot spring steam',type:'toggle'},{id:'water',label:'Filled with water',type:'toggle'}]},
-  {key:'tub',title:'Overflow Hot Tub',page:'hot-tubs',form:'Stainless steel hot tub / spa',make:hotTub,env:'hall',
+  {key:'tub',title:'Overflow Hot Tub',page:'hot-tubs',form:'Stainless steel hot tub / spa',make:hotTub,env:'rotunda',
    desc:'Free-standing welded spa with overflow grating, bench ring and hydro jets.',
    defaults:{shape:'round',size:2.6,width:1.9,height:.8,finish:'brushed',led:'ice',rail:true,steps:false,jets:true,water:true,steam:true,surround:'none'},
    controls:[{id:'shape',label:'Shape',type:'choice',options:[['round','Round'],['square','Square'],['oval','Oval'],['hex','Hexagon'],['oct','Octagon']]},
@@ -489,7 +439,7 @@ const PRODUCTS=[
      {id:'jets',label:'Hydro jets running',type:'toggle'},{id:'steam',label:'Hot spring steam',type:'toggle'},{id:'rail',label:'Handrail',type:'toggle'},{id:'steps',label:'Entry steps',type:'toggle'},{id:'water',label:'Filled with water',type:'toggle'}]},
   {key:'pool',title:'Swimming Pool',page:'stainless-pools',form:'Stainless steel swimming pool',make:pool,env:'sea',
    desc:'Welded stainless pool in three edge styles: vanishing edge, raised LED wall or deck-level overflow.',
-   defaults:{style:'infinity',shape:'oval',length:8,width:3.4,finish:'mirror',led:'ice'},
+   defaults:{style:'infinity',shape:'oval',length:8,width:3.4,finish:'brushed',led:'ice'},
    controls:[{id:'style',label:'Edge style',type:'choice',options:[['infinity','Infinity edge'],['raised','Raised LED wall'],['flush','Deck-level']]},
      {id:'shape',label:'Outline',type:'choice',options:[['oval','Oval'],['soft','Soft rectangle'],['free','Freeform']],when:p=>p.style!=='infinity'},
      {id:'length',label:'Length',type:'range',min:5,max:14,step:.5,unit:'m'},{id:'width',label:'Width',type:'range',min:2.5,max:5,step:.1,unit:'m'},
@@ -506,7 +456,7 @@ const PRODUCTS=[
    controls:[{id:'size',label:'Size',type:'range',min:2,max:3.6,step:.1,unit:'m'},
      {id:'clad',label:'Surround',type:'choice',options:[['white','White composite'],['steel','Brushed steel'],['timber','Timber']]},
      {id:'led',label:'Lighting',type:'choice',options:LED_OPTS},{id:'jets',label:'Hydro jets running',type:'toggle'},{id:'steps',label:'Entry steps',type:'toggle'}]},
-  {key:'sauna',title:'Sauna Room',page:'saunas',form:'Sauna / steam room',make:sauna,env:'aurora',
+  {key:'sauna',title:'Sauna Room',page:'saunas',form:'Sauna / steam room',make:sauna,env:'snow',
    desc:'Timber sauna with tiered benches, hidden light lines and stone heater.',
    defaults:{width:3.4,depth:2.3,tiers:2,wood:'cedar',led:'warm',glass:false},
    controls:[{id:'width',label:'Width',type:'range',min:2.4,max:4.6,step:.1,unit:'m'},{id:'depth',label:'Depth',type:'range',min:2,max:3.2,step:.1,unit:'m'},
@@ -515,7 +465,7 @@ const PRODUCTS=[
      {id:'led',label:'Light colour',type:'choice',options:[['warm','Warm'],['white','Neutral'],['ice','Ice blue'],['violet','Violet']]},
      {id:'glass',label:'Glass front & door',type:'toggle'}]}
 ];
-const ENV_LIST=[['zen','Zen garden'],['studio','Studio'],['rotunda','Hot spring hall'],['hall','Spa hall'],['roof','Rooftop dusk'],['sea','Seaside'],['forest','Nordic forest'],['aurora','Aurora night']];
+const ENV_LIST=[['zen','Garden'],['studio','Studio'],['rotunda','Indoor pool room'],['roof','Rooftop dusk'],['sea','Beach'],['forest','Misty pines'],['snow','Snowy forest'],['aurora','Lakeside dusk']];
 
 function build(key,params,envKey){
   seed=7;

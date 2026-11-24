@@ -260,7 +260,7 @@ void main(){
 }`;
 
 /* ---------------- viewer ---------------- */
-function viewer(canvas,opts={}){
+function legacyViewer(canvas,opts={},sharedCam){
   opts=Object.assign({},opts);if(window.STAVSJO_MANUAL)opts.manual=true;
   const gl=canvas.getContext('webgl2',{antialias:true,premultipliedAlpha:false,alpha:false,preserveDrawingBuffer:!!opts.manual});
   if(!gl){canvas.dataset.nogl='1';return null}
@@ -271,7 +271,7 @@ function viewer(canvas,opts={}){
   const U={};['uVP','uEye','uT','uType','uPat','uPatS','uSil','uSilC','uCol','uRough','uEmis','uAlpha','uFoam','uWave','uBrush','uGrain','uSkyTop','uSkyHor','uGnd','uSun','uSunCol','uGlow','uPLp','uPLc','uExpo','uBox','uRoom','uCloud','uStars','uAurora','uFog0','uFog1','uSunGlow'].forEach(n=>U[n]=gl.getUniformLocation(pr,n));
   const A={P:gl.getAttribLocation(pr,'aP'),N:gl.getAttribLocation(pr,'aN'),C:gl.getAttribLocation(pr,'aC')};
   let items=[],env={},t0=performance.now(),pend=false;
-  const cam={yaw:.7,pitch:.3,dist:7,target:[0,.5,0],fov:40,lift:.13,minD:2.5,maxD:18,auto:opts.autoRotate!==false,autoSpeed:opts.spin||.18,vy:0,vp:0};
+  const cam=sharedCam||{yaw:.7,pitch:.3,dist:7,target:[0,.5,0],fov:40,lift:.13,minD:2.5,maxD:18,auto:opts.autoRotate!==false,autoSpeed:opts.spin||.18,vy:0,vp:0};
 
   function upload(geo,m){
     const p=new Float32Array(geo.p),n=new Float32Array(p.length);
@@ -289,7 +289,7 @@ function viewer(canvas,opts={}){
   const skyItem=upload(G.sphere(150,24),{type:6});
   function setModel(model,o={}){
     items.forEach(it=>{gl.deleteVertexArray(it.vao);it.bufs.forEach(b=>gl.deleteBuffer(b))});
-    items=model.parts.filter(p=>p&&p[0]&&p[0].i.length).map(([geo,m])=>upload(geo,m));
+    items=model.parts.filter(p=>p&&p[0]&&p[0].i.length&&p[1].type!==8).map(([geo,m])=>upload(geo,m));
     const order=m=>m.type===5?1:(m.type===2?2:(m.type===3?3:(m.type===7?4:0)));
     items.sort((a,b)=>order(a.m)-order(b.m));
     env=Object.assign({skyTop:[.55,.68,.85],skyHor:[1,.97,.92],gnd:[.22,.2,.18],sun:[.5,.8,.35],sunCol:[1,.95,.85],glow:[0,0,0],pl:[0,5,0],plc:[0,0,0],expo:1,box:0,room:0,cloud:0,stars:0,aurora:0,sil:0,silC:[.1,.15,.1],fog0:30,fog1:0,sunGlow:1},model.env||{});
@@ -351,5 +351,26 @@ function viewer(canvas,opts={}){
   return {setModel,cam,render:(ms)=>frame(ms??performance.now())};
 }
 
-window.STAVSJO3D={G,MAT,mat,viewer};
+/* ---------------- public viewer ----------------
+   Uses the physically based three.js renderer (js/render3d.js) with real HDR
+   environments. The call returns at once; the engine loads in the background
+   and any setModel() made meanwhile is applied when it is ready. Browsers that
+   cannot load it (no import maps / no WebGL2) fall back to the renderer above. */
+function viewer(canvas,opts={}){
+  opts=Object.assign({},opts);if(window.STAVSJO_MANUAL||/[?&]still=1/.test(location.search))opts.manual=true;
+  const cam={yaw:.7,pitch:.3,dist:7,target:[0,.5,0],fov:40,lift:.13,minD:2.5,maxD:18,auto:opts.autoRotate!==false,autoSpeed:opts.spin||.18,vy:0,vp:0};
+  let impl=null,pending=null,failed=false;
+  const api={cam,setModel(m,o){if(impl)impl.setModel(m,o);else{pending=[m,o||{}];if(m.cam&&!(o&&o.keepCam))Object.assign(cam,m.cam)}},render(ms){if(impl)impl.render(ms)}};
+  const fallback=e=>{if(failed)return;failed=true;console.warn('STAVSJO 3D: using basic renderer',e);try{impl=legacyViewer(canvas,opts,cam)}catch(err){console.error(err)}if(impl&&pending)impl.setModel(pending[0],pending[1])};
+  const supportsMaps=HTMLScriptElement.supports&&HTMLScriptElement.supports('importmap');
+  const probe=document.createElement('canvas').getContext('webgl2');
+  if(!supportsMaps||!probe||window.STAVSJO_BASIC){fallback('unsupported');return api}
+  import(new URL('js/render3d.js',document.baseURI).href).then(mod=>{
+    impl=mod.createViewer(canvas,opts,cam);
+    if(pending)impl.setModel(pending[0],pending[1]);
+  }).catch(fallback);
+  return api;
+}
+
+window.STAVSJO3D={G,MAT,mat,viewer,legacyViewer};
 })();
