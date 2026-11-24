@@ -165,7 +165,16 @@ function rebuild(keepCam){
   $('#rDims').textContent=m.info.dims;$('#rVol').textContent=m.info.vol;$('#rSeat').textContent=m.info.seats;
   const p=state[curKey],sum=pd.controls.filter(c=>!c.when||c.when(p)).map(c=>{const v=p[c.id];
     return c.label+': '+(c.type==='choice'?(c.options.find(o=>o[0]===v)||[0,v])[1]:c.type==='toggle'?(v?'yes':'no'):label(c,p))}).join('\n');
-  $('#sQuote').onclick=()=>prefill(pd.form,`Design Studio configuration — ${pd.title}\n${sum}\nSize: ${m.info.dims}\nSetting viewed: ${(STAVSJO_ENVS.find(e=>e[0]===curEnv)||[])[1]}`);
+  const link=designLink();
+  $('#sQuote').onclick=()=>prefill(pd.form,`Design Studio configuration — ${pd.title}\n${sum}\nSize: ${m.info.dims}\nSetting viewed: ${(STAVSJO_ENVS.find(e=>e[0]===curEnv)||[])[1]}\nDesign link: ${link}`);
+  const sh=$('#sShare');if(sh){sh.textContent='Copy a link to this design';sh.onclick=async()=>{try{await navigator.clipboard.writeText(designLink());sh.textContent='Link copied ✓'}catch(_){prompt('Copy this link:',designLink())}}}
+}
+/* a link that reopens the studio with this exact product, setting and options */
+function designLink(){
+  const pd=STAVSJO_PRODUCTS.find(p=>p.key===curKey),p=state[curKey],q=new URLSearchParams({p:curKey});
+  if(curEnv&&curEnv!==pd.env)q.set('e',curEnv);
+  for(const k in p)if(String(p[k])!==String(pd.defaults[k]))q.set(k,typeof p[k]==='boolean'?(p[k]?'1':'0'):String(p[k]));
+  return location.origin+location.pathname+'?'+q.toString()+'#studio';
 }
 function drawControls(){
   const pd=STAVSJO_PRODUCTS.find(p=>p.key===curKey),p=state[curKey];

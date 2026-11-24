@@ -184,6 +184,9 @@ export function createViewer(canvas, opts, cam) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const pmrem = new THREE.PMREMGenerator(renderer);
+  // stay invisible (the page's poster image shows through) until the real environment is in
+  if (!manual) { canvas.style.opacity = '0'; canvas.style.transition = 'opacity .9s ease'; }
+  const reveal = () => { canvas.style.opacity = '1'; };
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x1a1f21);
@@ -416,7 +419,7 @@ export function createViewer(canvas, opts, cam) {
     if (envInfo.sunDir) fitShadow(curRadius, envInfo.sunDir);
     buildSky();
     const ready = setEnvironment(key, E.spec, model);
-    const done = () => { frame(performance.now()); frame(performance.now() + 16); canvas.dataset.ready = '1'; };
+    const done = () => { frame(performance.now()); frame(performance.now() + 16); canvas.dataset.ready = '1'; reveal(); kick(); };
     ready.catch((e) => console.error('STAVSJO 3D environment failed', e)).then(() => waitTextures()).then(done, done);
     kick();
   }
