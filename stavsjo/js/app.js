@@ -68,7 +68,7 @@ document.addEventListener('click',e=>{
   const pf=e.target.closest('[data-prefill]');if(pf){const [f,d]=pf.dataset.prefill.split('|');prefill(f,d)}
   const st=e.target.closest('[data-studio]');if(st)pendingProduct=st.dataset.studio;
   const j=e.target.closest('[data-jump]');if(j)jumpTo(j.dataset.jump);
-  const go=e.target.closest('[data-goto]');if(go){if(location.hash==='#projects'){e.preventDefault();jumpTo(go.dataset.goto)}else pendingJump=go.dataset.goto}
+  const go=e.target.closest('[data-goto]');if(go){if(location.hash===(go.getAttribute('href')||'#projects')){e.preventDefault();jumpTo(go.dataset.goto)}else pendingJump=go.dataset.goto}
 });
 let pendingJump=null;
 function jumpTo(id){const t=document.getElementById(id);if(t)window.scrollTo({top:t.getBoundingClientRect().top+scrollY-130,behavior:'smooth'})}
@@ -126,7 +126,7 @@ $('#lb').addEventListener('click',e=>{if(e.target.id==='lb')$('#lb').classList.r
 document.addEventListener('keydown',e=>{if(!$('#lb').classList.contains('open'))return;if(e.key==='Escape')$('#lb').classList.remove('open');if(e.key==='ArrowLeft')lbShow(lbI-1);if(e.key==='ArrowRight')lbShow(lbI+1)});
 
 /* ---------- router ---------- */
-const STATIC=['home','design','projects','hot-spring-tech','studio','engineering','technology','quality','after-sales','about','contact'];
+const STATIC=['faq','privacy','home','design','projects','hot-spring-tech','studio','engineering','technology','quality','after-sales','about','contact'];
 function route(){
   let h=(location.hash||'#home').slice(1);const col=COLLECTIONS.find(c=>c.key===h);
   if(!col&&!STATIC.includes(h))h='home';
@@ -136,7 +136,7 @@ function route(){
   $$('#links>a').forEach(a=>a.classList.toggle('cur',a.getAttribute('href')==='#'+h));
   document.body.classList.toggle('in-studio',h==='studio');
   $('#links').classList.remove('open');window.scrollTo(0,0);if(h==='engineering'&&!$('#galFab').innerHTML)renderEng();if(h==='quality'&&!$('#certs').innerHTML){renderCerts();renderPartners();STAVSJO_TECH.renderCreds()}if(h==='projects'&&!$('#galProj').innerHTML){renderProjects();STAVSJO_TECH.renderPList()}if(h==='hot-spring-tech'&&!$('#geoFlow').innerHTML)STAVSJO_TECH.renderTech();if(h==='design'&&!$('#designs').innerHTML)renderDesigns();if(h==='technology'&&!$('#controls').innerHTML)renderControls();$$('video').forEach(v=>{if(!v.closest('.view.on'))v.pause()})
-  document.title=(col?col.name:{home:'Factory-Direct Stainless Steel Pools, Spas & Saunas',studio:'3D Design Studio',design:'Design Portfolio','hot-spring-tech':'Hot Spring Technology',technology:'Technology & Materials',engineering:'Factory & Engineering',projects:'Projects',quality:'Quality & Supply Chain','after-sales':'After-Sales Service',about:'About',contact:'Contact & Quote'}[h])+' — STAVSJÖ';
+  document.title=(col?col.name:{home:'Factory-Direct Stainless Steel Pools, Spas & Saunas',studio:'3D Design Studio',design:'Design Portfolio','hot-spring-tech':'Hot Spring Technology',technology:'Technology & Materials',engineering:'Factory & Engineering',projects:'Projects',quality:'Quality & Supply Chain','after-sales':'After-Sales Service',about:'About',contact:'Contact & Quote',faq:'FAQ — Buying from Overseas',privacy:'Privacy Notice'}[h])+' — STAVSJÖ';
   if(h==='studio')openStudio();
   if(h==='home')startHero();
   observe();

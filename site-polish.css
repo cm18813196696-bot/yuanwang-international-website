@@ -147,4 +147,5 @@ body .profile-lead .profile-slogan{font:400 clamp(1.3rem,2.6vw,1.9rem)/1.35 Geor
 .ref-card p{font-size:14px;line-height:1.65}
 .ref-card a{font-size:13px;color:var(--water-accent)}
 .office-card{margin-top:20px}
-@media(max-width:640px){.profile-facts{grid-template-columns:repeat(2,1fr)}.profile-facts li:nth-child(3){padding-left:0;border-left:0}.profile-facts li:nth-child(n+3){border-top:1px solid var(--water-line)}}
+@media(max-width:640px){.profile-facts{grid-template-columns:repeat(2,1fr)}.profile-facts li:nth-child(3){padding-left:0;border-left:0}.profile-facts li:nth-child(n+3){border-top:1px solid var(--water-line)}}/* project cards without published photos (Nov 2026) */
+.pc-empty{display:flex;align-items:flex-end;aspect-ratio:5/3;padding:16px;border-radius:8px 8px 0 0;background:repeating-linear-gradient(135deg,#eaf5f6 0 14px,#e1eff0 14px 28px);color:#436270;font-size:11px;letter-spacing:.08em;text-transform:uppercase}

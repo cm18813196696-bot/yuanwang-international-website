@@ -106,7 +106,19 @@
     <loc>https://www.yuanwangspa.com/portfolio.html</loc>
   </url>
   <url>
-    <loc>https://www.yuanwangspa.com/stavsjo/</loc>
+    <loc>https://www.yuanwangspa.com/products-show.html</loc>
+  </url>
+  <url>
+    <loc>https://www.yuanwangspa.com/products-signature.html</loc>
+  </url>
+  <url>
+    <loc>https://www.yuanwangspa.com/products-steel.html</loc>
+  </url>
+  <url>
+    <loc>https://www.yuanwangspa.com/products-thermal.html</loc>
+  </url>
+  <url>
+    <loc>https://www.yuanwangspa.com/products.html</loc>
   </url>
   <url>
     <loc>https://www.yuanwangspa.com/project-01.html</loc>
@@ -188,5 +200,8 @@
   </url>
   <url>
     <loc>https://www.yuanwangspa.com/technology.html</loc>
+  </url>
+  <url>
+    <loc>https://www.yuanwangspa.com/stavsjo/</loc>
   </url>
 </urlset>
