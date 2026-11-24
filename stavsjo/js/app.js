@@ -200,31 +200,69 @@ function openStudio(){
 window.STAVSJO_APP={pick:pickProduct,env:e=>{curEnv=e;drawControls();rebuild(true)},set:(id,v)=>{state[curKey][id]=v;drawControls();rebuild(true)},viewers:()=>({hero,studio})};
 
 /* ---------- quote form ----------
-   Test version: there is no server yet. The form prepares an email or a
-   WhatsApp message for the visitor to send. Once the site is hosted, a form
-   service can be connected here so enquiries arrive automatically. */
-const form=$('#qform');let via='email';
+   With a Formspree ID in js/site-config.js, "Send request" delivers the enquiry
+   straight to our inbox, and WhatsApp enquiries are copied there too.
+   Without one (or if sending fails) the form prepares an email or a WhatsApp
+   message for the visitor to send themselves. */
+const CFG=window.STAVSJO_CONFIG||{},FS=(CFG.formspree||'').trim();
+const form=$('#qform');let via='email',sending=false;
 form.querySelectorAll('button[data-via]').forEach(b=>b.addEventListener('click',()=>via=b.dataset.via));
+const sendBtn=form.querySelector('button[data-via="email"]');
+if(FS&&sendBtn)sendBtn.innerHTML='<svg class="ic"><use href="#i-mail"/></svg>Send request';
+function toFormspree(lines,subj,channel,keepalive){
+  const data={_subject:subj,email:form.Email.value.trim(),channel,_gotcha:(form._gotcha||{}).value||''};
+  lines.forEach(([k,v])=>data[k]=v);data.Page=location.href;
+  return fetch('https://formspree.io/f/'+encodeURIComponent(FS),{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify(data),keepalive:!!keepalive})
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r});
+}
+function showManual(body,subj,note){
+  $('#qtext').textContent=body;const open=$('#qopen');$('#qdone h3').textContent='Almost done';
+  ['#qopen','#qcopy','#qtext'].forEach(s=>$(s).style.display='');$('#qback').textContent='Edit';
+  if(via==='whatsapp'){open.href=`https://wa.me/${CONTACT.waNumber}?text=${encodeURIComponent(body)}`;open.target='_blank';open.textContent='Open WhatsApp';$('#qmsg').innerHTML=`Your message is ready. Tap below to send it to us on WhatsApp (<b>${CONTACT.whatsapp}</b>).`}
+  else{open.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;open.removeAttribute('target');open.textContent='Open my email app';$('#qmsg').innerHTML=(note||'')+`Your message is ready. Tap below to send it to <b>${CONTACT.email}</b>, or copy the text into your own email.`}
+  $('#qfields').style.display='none';$('#qdone').style.display='block';
+}
+function showSent(email){
+  $('#qdone h3').textContent='Thank you — request received';
+  $('#qmsg').innerHTML=`We have your enquiry and will reply to <b>${email.replace(/[<>&"]/g,'')}</b> within 1 working day. For a faster answer, message us on WhatsApp (<b>${CONTACT.whatsapp}</b>).`;
+  ['#qopen','#qcopy','#qtext'].forEach(s=>$(s).style.display='none');$('#qback').textContent='Send another request';
+  $('#qfields').style.display='none';$('#qdone').style.display='block';
+}
 form.addEventListener('submit',e=>{
-  e.preventDefault();let ok=true;
+  e.preventDefault();if(sending)return;let ok=true;
   form.querySelectorAll('#qfields [required]').forEach(i=>{const bad=i.type==='checkbox'?!i.checked:!i.value.trim()||(i.type==='email'&&!/^\S+@\S+\.\S+$/.test(i.value));const box=i.closest('.f');if(box)box.classList.toggle('err',bad);if(bad)ok=false});
   if(!ok){$('#qerr').textContent='Please complete the required fields and tick the consent box.';return}
   $('#qerr').textContent='';
-  const lines=[...form.querySelectorAll('#qfields [name]')].filter(i=>i.value.trim()).map(i=>`${i.name}: ${i.value.trim()}`);
-  const body="STAVSJÖ quote request\n\n"+lines.join('\n'),subj=`Quote request — ${form.Product.value} — ${form.Country.value}`;
-  $('#qtext').textContent=body;const open=$('#qopen');
-  if(via==='whatsapp'){open.href=`https://wa.me/${CONTACT.waNumber}?text=${encodeURIComponent(body)}`;open.target='_blank';open.textContent='Open WhatsApp';$('#qmsg').innerHTML=`Your message is ready. Tap below to send it to us on WhatsApp (<b>${CONTACT.whatsapp}</b>).`}
-  else{open.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;open.removeAttribute('target');open.textContent='Open my email app';$('#qmsg').innerHTML=`Your message is ready. Tap below to send it to <b>${CONTACT.email}</b>, or copy the text into your own email.`}
-  $('#qfields').style.display='none';$('#qdone').style.display='block';
+  const pairs=[...form.querySelectorAll('#qfields [name]')].filter(i=>i.name!=='_gotcha'&&i.value.trim()).map(i=>[i.name,i.value.trim()]);
+  const body="STAVSJÖ quote request\n\n"+pairs.map(([k,v])=>`${k}: ${v}`).join('\n'),subj=`Quote request — ${form.Product.value} — ${form.Country.value}`;
+  track('generate_lead',{method:via,product:form.Product.value,country:form.Country.value});
+  if(!FS){showManual(body,subj);return}
+  if(via==='whatsapp'){toFormspree(pairs,subj+' (via WhatsApp)','whatsapp',true).catch(()=>{});showManual(body,subj);return}
+  sending=true;const label=sendBtn.innerHTML;sendBtn.disabled=true;sendBtn.textContent='Sending…';
+  toFormspree(pairs,subj,'website form').then(()=>{showSent(form.Email.value.trim());form.reset();$('#qOk').checked=false})
+    .catch(()=>showManual(body,subj,'We could not send your request automatically. '))
+    .finally(()=>{sending=false;sendBtn.disabled=false;sendBtn.innerHTML=label});
 });
 $('#qback').onclick=()=>{$('#qfields').style.display='';$('#qdone').style.display='none'};
 $('#qcopy').onclick=async e=>{try{await navigator.clipboard.writeText($('#qtext').textContent);e.target.textContent='Copied ✓'}catch(_){e.target.textContent='Select the text to copy'}};
 
+/* ---------- analytics (Google Analytics 4, only after consent) ---------- */
+const GA=(CFG.ga||'').trim();let gaOn=false;
+function loadGA(){
+  if(gaOn||!/^G-[A-Z0-9]+$/i.test(GA))return;gaOn=true;
+  window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments)};
+  gtag('js',new Date());gtag('config',GA,{page_location:location.href,page_title:document.title});
+  const s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(GA);document.head.appendChild(s);
+  addEventListener('hashchange',()=>setTimeout(()=>gtag('event','page_view',{page_location:location.href,page_title:document.title}),60));
+}
+function track(name,params){if(gaOn&&window.gtag)gtag('event',name,params||{})}
+document.addEventListener('click',e=>{const a=e.target.closest('a[href^="https://wa.me"],a[href^="mailto:"]');if(a)track(a.href.startsWith('mailto')?'contact_email':'contact_whatsapp',{link_location:location.hash||'#home'})});
+
 /* ---------- cookie notice ---------- */
 const ck=$('#ck');
 const getC=()=>{try{return JSON.parse(localStorage.getItem('stavsjo_consent'))}catch(_){return null}};
-const setC=v=>{try{localStorage.setItem('stavsjo_consent',JSON.stringify(Object.assign({necessary:true,date:new Date().toISOString()},v)))}catch(_){}ck.classList.remove('open','more')};
-const saved=getC();if(!saved)setTimeout(()=>ck.classList.add('open'),900);else{$('#ckA').checked=!!saved.analytics;$('#ckM').checked=!!saved.marketing}
+const setC=v=>{try{localStorage.setItem('stavsjo_consent',JSON.stringify(Object.assign({necessary:true,date:new Date().toISOString()},v)))}catch(_){}ck.classList.remove('open','more');if(v.analytics)loadGA();else if(gaOn)location.reload()};
+const saved=getC();if(!saved)setTimeout(()=>ck.classList.add('open'),900);else{$('#ckA').checked=!!saved.analytics;$('#ckM').checked=!!saved.marketing;if(saved.analytics)loadGA()}
 $('#ckYes').onclick=()=>{$('#ckA').checked=$('#ckM').checked=true;setC({analytics:true,marketing:true})};
 $('#ckNo').onclick=()=>{if(ck.classList.contains('more'))setC({analytics:$('#ckA').checked,marketing:$('#ckM').checked});else{$('#ckA').checked=$('#ckM').checked=false;setC({analytics:false,marketing:false})}};
 $('#ckMore').onclick=()=>{const m=ck.classList.toggle('more');$('#ckNo').textContent=m?'Save my choices':'Necessary only';$('#ckMore').textContent=m?'Hide preferences':'Manage preferences'};
