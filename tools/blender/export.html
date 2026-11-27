@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8">
+<!-- Exports Design Studio products to GLB for Blender.
+     Use: copy this file and GLTFExporter.js (three r170, examples/jsm/exporters) into stavsjo/_x/,
+     serve stavsjo/ with a server that accepts PUT /__save/<name>.glb, open /_x/export.html[?d=name].
+     Never commit stavsjo/_x/. -->
+<script type="importmap">{"imports":{"three":"../vendor/three/three.module.min.js"}}</script></head>
+<body><pre id="log">working…</pre>
+<script>window.STAVSJO_BASIC=true;</script>
+<script src="../js/stavsjo3d.js"></script><script src="../js/models.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFExporter } from './GLTFExporter.js';
+const DESIGNS = {
+  signature: ['icon', {form:'moon',finish:'mirror',led:'warm',size:2.2,steam:false}],
+  tub:       ['tub',  {shape:'round',finish:'brushed',led:'ice',rail:true,steps:false,jets:true,water:true,steam:false}],
+  tub_oct:   ['tub',  {shape:'oct',finish:'bronze',led:'warm',rail:false,steps:false,jets:true,water:true,steam:false}],
+  bathtub:   ['designer', {form:'wave',finish:'mirror',water:false,mixer:true}],
+  glass:     ['glass', {size:2.6,clad:'steel',led:'ice',jets:true,steps:true}],
+  drop:      ['icon', {form:'drop',finish:'mirror',led:'ice',size:2.2,steam:false}]
+};
+const log = (s) => document.getElementById('log').textContent += '\n' + s;
+const pick = new URLSearchParams(location.search).get('d');
+for (const [name, [key, params]] of Object.entries(DESIGNS)) {
+  if (pick && pick !== name) continue;
+  const m = STAVSJO_BUILD(key, params, 'studio');
+  const group = new THREE.Group(); group.name = name;
+  m.parts.forEach(([geo, mat], i) => {
+    if (!geo || !geo.i.length || mat.ground || mat.type === 8 || mat.type === 5 || mat.type === 7) return;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(geo.p, 3));
+    if (geo.c && geo.c.length === geo.p.length && geo.c.some(v => Math.abs(v - 1) > 1e-3)) g.setAttribute('color', new THREE.Float32BufferAttribute(geo.c.map(v => Math.pow(Math.max(v, 0), 2.2)), 3));
+    g.setIndex(geo.i); g.computeVertexNormals();
+    const mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ name: 'm' + i }));
+    mesh.name = `${name}_p${i}_t${mat.type ?? 0}`;
+    mesh.userData = { st: JSON.stringify(mat) };
+    group.add(mesh);
+  });
+  const glb = await new GLTFExporter().parseAsync(group, { binary: true });
+  const r = await fetch('/__save/' + name + '.glb', { method: 'PUT', body: glb });
+  log(name + ': ' + group.children.length + ' parts, ' + glb.byteLength + ' bytes, ' + r.status);
+}
+log('done'); document.title = 'done';
+</script></body></html>
