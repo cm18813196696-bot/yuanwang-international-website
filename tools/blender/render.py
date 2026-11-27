@@ -94,14 +94,23 @@ def make_material(st, has_vc):
     if t == 1:
         m, b = principled('metal'); b.inputs['Base Color'].default_value = srgb(col); b.inputs['Metallic'].default_value = 1
         b.inputs['Roughness'].default_value = 0.3 if st.get('brush') else max(0.02, rough * 0.9)
-        if st.get('brush'): b.inputs['Anisotropic'].default_value = 0.6
+        if st.get('brush'):  # horizontal brushed grain: streaky roughness + a hint of bump
+            b.inputs['Anisotropic'].default_value = 0.6
+            nt2 = m.node_tree; tcn = nt2.nodes.new('ShaderNodeTexCoord'); mpn = nt2.nodes.new('ShaderNodeMapping'); mpn.inputs['Scale'].default_value = (3, 3, 420)
+            nt2.links.new(tcn.outputs['Object'], mpn.inputs['Vector'])
+            nz = nt2.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 1.5; nz.inputs['Detail'].default_value = 10
+            nt2.links.new(mpn.outputs['Vector'], nz.inputs['Vector'])
+            rr = nt2.nodes.new('ShaderNodeMapRange'); rr.inputs['To Min'].default_value = 0.18; rr.inputs['To Max'].default_value = 0.42
+            nt2.links.new(nz.outputs['Fac'], rr.inputs['Value']); nt2.links.new(rr.outputs['Result'], b.inputs['Roughness'])
+            bp = nt2.nodes.new('ShaderNodeBump'); bp.inputs['Strength'].default_value = 0.08; bp.inputs['Distance'].default_value = 0.0005
+            nt2.links.new(nz.outputs['Fac'], bp.inputs['Height']); nt2.links.new(bp.outputs['Normal'], b.inputs['Normal'])
         return m
     if t == 2:
         m, b = principled('water'); wave = st.get('wave', 1)
         b.inputs['Base Color'].default_value = (1, 1, 1, 1); b.inputs['Roughness'].default_value = 0.01 if wave else 0.05
         b.inputs['Transmission Weight'].default_value = 1; b.inputs['IOR'].default_value = 1.333
         c = st.get('col', [0.1, 0.5, 0.6])
-        if wave:
+        if wave or st.get('glow'):  # still water (a vertical panel with LED glow is the water body behind a window)
             water_bump(m, b, 1, 1, 0.06 * wave)
             va = m.node_tree.nodes.new('ShaderNodeVolumeAbsorption'); va.inputs['Color'].default_value = srgb([min(1, v * 1.1 + 0.3) for v in c]); va.inputs['Density'].default_value = 0.35
             m.node_tree.links.new(va.outputs[0], m.node_tree.nodes['Material Output'].inputs['Volume'])
@@ -146,12 +155,47 @@ if not PROBE:
         st = json.loads(o.get('st', '{}'))
         o.data.materials.clear(); o.data.materials.append(make_material(st, len(o.data.color_attributes) > 0))
         for p in o.data.polygons: p.use_smooth = True
+        # real edges are never razor sharp: a small bevel catches a fine highlight
+        if st.get('type', 0) in (0, 1) and A.get('bevel', '1') == '1':
+            bpy.ops.object.select_all(action='DESELECT'); o.select_set(True); bpy.context.view_layer.objects.active = o
+            bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT'); bpy.ops.mesh.remove_doubles(threshold=0.0001); bpy.ops.object.mode_set(mode='OBJECT')
+            bv = o.modifiers.new('bevel', 'BEVEL'); bv.width = 0.003; bv.segments = 2; bv.limit_method = 'ANGLE'; bv.angle_limit = math.radians(40); bv.harden_normals = False
+            try: bpy.ops.object.shade_smooth_by_angle(angle=math.radians(35))
+            except Exception as e: print('smooth-by-angle unavailable', e)
         if A.get('fixnormals') == '1':
             import bmesh
             bm = bmesh.new(); bm.from_mesh(o.data); bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(o.data); bm.free()
     # place on the ground in front of the camera, turned for a three-quarter view
     for r in root:
         r.rotation_mode = 'XYZ'; r.location = target; r.rotation_euler[2] += YAW
+    # hot-spring steam: a soft volume over the water, thinning with height
+    if A.get('steam'):
+        sr, sy = map(float, A['steam'].split(','))  # radius, water height (m)
+        bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=sr, depth=1.6, location=(0, DIST, sy + 0.8)); sv = bpy.context.active_object
+        vm = bpy.data.materials.new('steam'); vm.use_nodes = True; vt = vm.node_tree; vt.nodes.clear()
+        vo = vt.nodes.new('ShaderNodeOutputMaterial'); pv = vt.nodes.new('ShaderNodeVolumePrincipled'); pv.inputs['Color'].default_value = (1, 1, 1, 1)
+        tco = vt.nodes.new('ShaderNodeTexCoord'); nz = vt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 4.5; nz.inputs['Detail'].default_value = 8; nz.inputs['Distortion'].default_value = 1.2
+        mpz = vt.nodes.new('ShaderNodeMapping'); mpz.inputs['Scale'].default_value = (1, 1, 0.45)
+        vt.links.new(tco.outputs['Object'], mpz.inputs['Vector']); vt.links.new(mpz.outputs['Vector'], nz.inputs['Vector'])
+        cr = vt.nodes.new('ShaderNodeValToRGB'); cr.color_ramp.elements[0].position = 0.55; cr.color_ramp.elements[1].position = 0.8
+        vt.links.new(nz.outputs['Fac'], cr.inputs['Fac'])
+        sep = vt.nodes.new('ShaderNodeSeparateXYZ'); vt.links.new(tco.outputs['Generated'], sep.inputs['Vector'])
+        fade = vt.nodes.new('ShaderNodeMapRange'); fade.inputs['From Min'].default_value = 0.0; fade.inputs['From Max'].default_value = 1.0; fade.inputs['To Min'].default_value = 1.0; fade.inputs['To Max'].default_value = 0.0
+        vt.links.new(sep.outputs['Z'], fade.inputs['Value'])
+        # also fade towards the cylinder wall so no edge shows
+        rad = vt.nodes.new('ShaderNodeVectorMath'); rad.operation = 'LENGTH'
+        ctr = vt.nodes.new('ShaderNodeVectorMath'); ctr.operation = 'MULTIPLY'; ctr.inputs[1].default_value = (1, 1, 0)
+        vt.links.new(tco.outputs['Object'], ctr.inputs[0]); vt.links.new(ctr.outputs[0], rad.inputs[0])
+        edge = vt.nodes.new('ShaderNodeMapRange'); edge.inputs['From Min'].default_value = 0.35 * sr; edge.inputs['From Max'].default_value = sr; edge.inputs['To Min'].default_value = 1.0; edge.inputs['To Max'].default_value = 0.0
+        vt.links.new(rad.outputs['Value'], edge.inputs['Value'])
+        m1 = vt.nodes.new('ShaderNodeMath'); m1.operation = 'MULTIPLY'; m2 = vt.nodes.new('ShaderNodeMath'); m2.operation = 'MULTIPLY'; m3 = vt.nodes.new('ShaderNodeMath'); m3.operation = 'MULTIPLY'
+        m3.inputs[1].default_value = float(A.get('steamd', 1.2))
+        sq = vt.nodes.new('ShaderNodeMath'); sq.operation = 'POWER'; sq.inputs[1].default_value = 2.5; vt.links.new(fade.outputs['Result'], sq.inputs[0])
+        vt.links.new(cr.outputs['Color'], m1.inputs[0]); vt.links.new(sq.outputs[0], m1.inputs[1])
+        vt.links.new(m1.outputs[0], m2.inputs[0]); vt.links.new(edge.outputs['Result'], m2.inputs[1])
+        vt.links.new(m2.outputs[0], m3.inputs[0]); vt.links.new(m3.outputs[0], pv.inputs['Density'])
+        vt.links.new(pv.outputs[0], vo.inputs['Volume']); sv.data.materials.append(vm)
+        sv.visible_shadow = False
     # shadow catcher on the real ground
     bpy.ops.mesh.primitive_plane_add(size=60, location=(0, DIST, 0.0005)); pl = bpy.context.active_object; pl.is_shadow_catcher = True
     # a detailed ground that only reflections see (the photo's own ground is blurred below the camera)

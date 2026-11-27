@@ -11,7 +11,7 @@
 - Share-a-design links (`?p=…&e=…#studio`), also included in quote requests.
 - Trimmed letterboxed photos, new hero poster, consistent project counts, verifiable salt-spray figure.
 - Company site: "Ruilinwan" spelling unified; customer-facing project archive wording.
-- Blender (Cycles) product stills: wave bathtub (studio), crescent waterfall spa (garden), teardrop spa (beach) added to the Design Studio page as labelled design renderings.
+- Blender (Cycles) product stills, six in total, on the Design Studio page as labelled design renderings: wave bathtub (studio), crescent waterfall spa (garden), teardrop spa (beach), brushed hot tub with steam (snowy forest), bronze octagonal tub (garden), glass-front spa (rooftop at dusk).
 
 ## Blender pipeline (tools/blender)
 1. Export GLBs with `export.html` (see comment in the file).
@@ -20,7 +20,7 @@
 3. 8k tonemapped JPGs are not in the repo (≈9 MB each); download from Poly Haven again if needed.
 
 ## Open / next
-- Octagon bronze tub render looked flat and slightly floating — needs a better bronze material and setting.
-- More renders: hot tub in snow (snowy_forest_path_01, rot 315), glass-front spa on the rooftop (rooftop_night, rot 90).
+- render.py options added 27 Nov: steam=<radius,water height> steamd=<density> (volumetric steam), bevel=0|1 (3 mm edge bevel; turn off for large flat box panels — it caused shading triangles on the glass spa), brushed grain on brushed steel.
+- Possible next renders: hydromassage lounge pool, swimming pool, sauna (needs an interior or a model with walls).
 - Interior HDRIs distort when ground-projected; a modelled interior or Blender renders are the better route for indoor scenes.
 - Still waiting from Ming: Google Analytics ID; real product photos; product spec data; certifications; trade terms; testimonials.
